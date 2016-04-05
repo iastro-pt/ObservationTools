@@ -1,0 +1,5 @@
+astropy
+PyAstronomy
+argparse
+numpy
+matplotlib
