@@ -7,14 +7,14 @@ from astropy.coordinates import SkyCoord
 import argparse
 
 def _parser():
-    sites = pyasl.listObservatories(show=False)
     parser = argparse.ArgumentParser(description='Plot altitudes of objects'
                                                  ' against time for a specific night')
     parser.add_argument('targets', help='E.g. HD20010 or HD20010,HD41248', nargs='+')
     parser.add_argument('-d', '--date', default='today',
                         help='Date in format YYYY-MM-DD. Default is today')
-    parser.add_argument('-s', '--site', default='esolasilla', choices=sites.keys(),
-                        help='Observatory. Default is ESO La Silla')
+    parser.add_argument('-s', '--site', default='esolasilla', 
+                        help='Observatory. Default is ESO La Silla. '
+                             'Common codes are esoparanal, lapalma, keck, lco, Palomar, etc')
     parser.add_argument('-c', default=False, action='store_true',
                         help='Just print "target RA DEC" (to use in STARALT)')
     return parser.parse_args()
