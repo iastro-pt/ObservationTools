@@ -7,14 +7,13 @@ from astropy.coordinates import SkyCoord
 import argparse
 
 def _parser():
+    sites = pyasl.listObservatories(show=False)
     parser = argparse.ArgumentParser(description='Plot altitudes of objects'
                                                  ' against time for a specific night')
     parser.add_argument('targets', help='E.g. HD20010 or HD20010,HD41248', nargs='+')
-    # parser.add_argument('-p', '--params', default=True, action='store_true',
-                        # help='List of parameters (Teff, logg, [Fe/H] be default)')
     parser.add_argument('-d', '--date', default='today',
-                        help='Date in format YYYY-MM-DD. Default is today')    
-    parser.add_argument('-s', '--site', default='esolasilla',
+                        help='Date in format YYYY-MM-DD. Default is today')
+    parser.add_argument('-s', '--site', default='esolasilla', choices=sites.keys(),
                         help='Observatory. Default is ESO La Silla')
     parser.add_argument('-c', default=False, action='store_true',
                         help='Just print "target RA DEC" (to use in STARALT)')
@@ -24,13 +23,13 @@ def _parser():
 def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, showMoonDist=True, print2file=False):
   """
     Plot the visibility of target.
-    
+
     Parameters
     ----------
     date: datetime
         The date for which to calculate the visibility.
     targets: list
-        List of targets. 
+        List of targets.
         Each target should be a dictionary with keys 'name' and 'coord'.
         The key 'name' is aa string, 'coord' is a SkyCoord object.
     observatory: string
@@ -55,8 +54,8 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
     print('matplotlib is not installed?')
     sys.exit(1)
 
-  rcParams['xtick.major.pad'] = 12 
-  
+  rcParams['xtick.major.pad'] = 12
+
 
   obs = pyasl.observatory(observatory)
 
@@ -112,15 +111,15 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
     sun_ra, sun_dec = sun_position[1], sun_position[2]
     sunpos_altaz = pyasl.eq2hor(jds, np.ones(jds.size)*sun_ra, np.ones(jds.size)*sun_dec, \
                                 lon=obs['longitude'], lat=obs['latitude'], alt=obs['altitude'])
-    
+
     # Define plot label
     plabel = "[%2d]  %s" % (n+1, target['name'])
-    
+
     # Find periods of: day, twilight, and night
     day = np.where( sunpos_altaz[0] >= 0. )[0]
     twi = np.where( np.logical_and(sunpos_altaz[0] > -18., sunpos_altaz[0] < 0.) )[0]
     night = np.where( sunpos_altaz[0] <= -18. )[0]
-    
+
     if (len(day) == 0) and (len(twi) == 0) and (len(night) == 0):
       print
       print "VisibilityPlot - no points to draw"
@@ -128,7 +127,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
 
     mpos = pyasl.moonpos(jds)
     # mpha = pyasl.moonphase(jds)
-    # mpos_altaz = pyasl.eq2hor(jds, mpos[0], mpos[1], 
+    # mpos_altaz = pyasl.eq2hor(jds, mpos[0], mpos[1],
     #                            lon=obs['longitude'], lat=obs['latitude'], alt=obs['altitude'])
     # moonind = np.where( mpos_altaz[0] > 0. )[0]
 
@@ -163,17 +162,17 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
 
     if n+1 == 29:
       ax.text( 1.1, 1.0-float(n+1)*0.04, "too many targets", ha="left", va="top", transform=ax.transAxes, \
-              fontsize=10, fontproperties=font0, color="r")      
+              fontsize=10, fontproperties=font0, color="r")
     else:
       ax.text( 1.1, 1.0-float(n+1)*0.04, plabel, ha="left", va="top", transform=ax.transAxes, \
               fontsize=12, fontproperties=font0, color="b")
 
   ax.text( 1.1, 1.03, "List of targets", ha="left", va="top", transform=ax.transAxes, \
           fontsize=12, fontproperties=font0, color="b")
-  
+
   axrange = ax.get_xlim()
   ax.set_xlabel("UT [hours]")
-  
+
   if axrange[1]-axrange[0] <= 1.0:
     jdhours = np.arange(0,3,1.0/24.)
     utchours = (np.arange(0,72,dtype=int)+12)%24
@@ -182,7 +181,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
     utchours = (np.arange(0,72, 2, dtype=int)+12)%24
   ax.set_xticks(jdhours)
   ax.set_xlim(axrange)
-  ax.set_xticklabels(utchours, fontsize=18)  
+  ax.set_xticklabels(utchours, fontsize=18)
 
   # Make ax2 responsible for "top" axis and "right" axis
   ax2 = ax.twin()
@@ -193,7 +192,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
 
   # Horizon angle for airmass
   airmass_ang = np.arange(5.,90.,5.)
-  geo_airmass = pyasl.airmass.airmassPP(90.-airmass_ang) 
+  geo_airmass = pyasl.airmass.airmassPP(90.-airmass_ang)
   ax2.set_yticks(airmass_ang)
   airmassformat = []
   for t in range(geo_airmass.size):
@@ -205,7 +204,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
            va='top', fontsize=10, rotation=90)
 
   ax22 = ax.twin()
-  ax22.set_xticklabels([])  
+  ax22.set_xticklabels([])
   ax22.set_frame_on(True)
   ax22.patch.set_visible(False)
   ax22.yaxis.set_ticks_position('right')
@@ -254,7 +253,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
   for t in range(yticksminor.size): m_ytickformat.append(str(int(yticksminor[t]))+r"$^\circ$")
   ax.set_yticklabels(m_ytickformat, minor=True)
   ax.set_ylim([0, 91])
-  
+
   ax.yaxis.grid(color='gray', linestyle='dashed')
   ax.yaxis.grid(color='gray', which="minor", linestyle='dotted')
   ax2.xaxis.grid(color='gray', linestyle='dotted')
@@ -276,7 +275,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
 
   plt.text(0.01,0.97, obsco, transform=fig.transFigure, ha='left', va='center', fontsize=10)
   plt.text(0.01,0.95, obs['name'], transform=fig.transFigure, ha='left', va='center', fontsize=10)
-  
+
   if print2file:
     pass
     # plt.savefig(outfile, format="png", dpi=300)
@@ -289,17 +288,17 @@ if __name__ == '__main__':
   import sys
   from astropy.coordinates import name_resolve
   args = _parser()
-  
+
   target_names = args.targets[0].split(',')
   # print target_names
 
   ## Get coordinates for all the targets
-  try:
-    targets = [{'name': t, 'coord': SkyCoord.from_name(t)} for t in target_names]
-  except name_resolve.NameResolveError as e:
-    print e
-    sys.exit(1)
-  # print targets
+  targets = []
+  for target_name in target_names:
+    try:
+      targets.append({'name': target_name, 'coord': SkyCoord.from_name(target_name)})
+    except name_resolve.NameResolveError as e:
+      print('Could not find target: %s' % target_name)
 
   ## Just print coordinates in STARALT format and exit
   if args.c:
@@ -317,7 +316,7 @@ if __name__ == '__main__':
 
   ## Actually calculate the visibility curves
   print('Calculating visibility for %s' % args.targets[0])
-  
+
   import datetime as dt
   if args.date == 'today':
     date = dt.datetime.now()
