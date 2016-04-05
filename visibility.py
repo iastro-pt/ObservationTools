@@ -4,7 +4,21 @@ from PyAstronomy import pyasl
 from astropy.coordinates import SkyCoord
 # import ephem
 
-import sys
+import argparse
+
+def _parser():
+    parser = argparse.ArgumentParser(description='Plot altitudes of objects'
+                                                 ' against time for a specific night')
+    parser.add_argument('targets', help='E.g. HD20010 or HD20010,HD41248', nargs='+')
+    # parser.add_argument('-p', '--params', default=True, action='store_true',
+                        # help='List of parameters (Teff, logg, [Fe/H] be default)')
+    parser.add_argument('-d', '--date', default='today',
+                        help='Date in format YYYY-MM-DD. Default is today')    
+    parser.add_argument('-s', '--site', default='esolasilla',
+                        help='Observatory. Default is ESO La Silla')
+    parser.add_argument('-c', default=False, action='store_true',
+                        help='Just print "target RA DEC" (to use in STARALT)')
+    return parser.parse_args()
 
 
 def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, showMoonDist=True, print2file=False):
@@ -272,16 +286,61 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
 
 
 if __name__ == '__main__':
+  import sys
+  from astropy.coordinates import name_resolve
+  args = _parser()
+  
+  target_names = args.targets[0].split(',')
+  # print target_names
+
+  ## Get coordinates for all the targets
+  try:
+    targets = [{'name': t, 'coord': SkyCoord.from_name(t)} for t in target_names]
+  except name_resolve.NameResolveError as e:
+    print e
+    sys.exit(1)
+  # print targets
+
+  ## Just print coordinates in STARALT format and exit
+  if args.c:
+    print('Coordinates for %s\n' % args.targets[0])
+    for target in targets:
+      ## name hh mm ss ±dd mm ss
+      out = '%s' % target['name']
+      ra = target['coord'].ra.hms
+      out += ' %02d %02d %5.3f' % (ra.h, ra.m, ra.s)
+      dec = target['coord'].dec.dms
+      out += ' %02d %02d %5.3f' % (dec.d, dec.m, dec.s)
+      print(out)
+
+    sys.exit(0)
+
+  ## Actually calculate the visibility curves
+  print('Calculating visibility for %s' % args.targets[0])
+  
   import datetime as dt
+  if args.date == 'today':
+    date = dt.datetime.now()
+    print(date.date())
+  else:
+    ymd = [int(i) for i in args.date.split('-')]
+    date = dt.datetime(*ymd)
+    print(date.date())
 
-  ids = ['HD41248', 'HD219828']
-  targets = []
-  for i in ids:
-    coord = SkyCoord.from_name(i)
-    target = {'name': i, 'coord': coord}
-    targets.append(target)
+  ## Find observatory
+  available_sites = pyasl.listObservatories(show=False)
+  if args.site not in available_sites.keys():
+    print('"%s" is not a valid observatory code. Try one of the following:\n' % args.site)
 
+    maxCodeLen = max(map(len, available_sites.keys()))
+    print ("{0:"+str(maxCodeLen)+"s}     ").format("Code") + "Observatory name"
+    print ("-" * (21+maxCodeLen))
+    for k in sorted(available_sites.keys(), key=lambda s: s.lower()):
+      print ("{0:"+str(maxCodeLen)+"s} --- ").format(k) + available_sites[k]["name"]
 
-  d = dt.datetime(2016, 4, 5)
+    sys.exit(1)
 
-  VisibilityPlot(date=d, targets=targets, observatory='esolasilla')
+  print(pyasl.observatory(args.site)['name'])
+
+  ## Plot visibility
+  VisibilityPlot(date=date, targets=targets, observatory=args.site)
