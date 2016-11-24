@@ -125,7 +125,7 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
 
     if (len(day) == 0) and (len(twi) == 0) and (len(night) == 0):
       print
-      print "VisibilityPlot - no points to draw"
+      print("VisibilityPlot - no points to draw")
       print
 
 
@@ -202,10 +202,10 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
   ax22.spines['right'].set_position(('outward', 25))
   ax22.spines['right'].set_color('k')
   ax22.spines['right'].set_visible(True)
-  airmass2 = np.array(map(lambda ang: pyasl.airmass.airmassSpherical(90. - ang, obs['altitude']), airmass_ang))
+  airmass2 = list(map(lambda ang: pyasl.airmass.airmassSpherical(90. - ang, obs['altitude']), airmass_ang))
   ax22.set_yticks(airmass_ang)
   airmassformat = []
-  for t in range(airmass2.size): airmassformat.append("%2.2f" % airmass2[t])
+  for t in range(len(airmass2)): airmassformat.append("%2.2f" % airmass2[t])
   ax22.set_yticklabels(airmassformat, rotation=90)
   ax22.tick_params(axis="y", pad=10, labelsize=10)
   plt.text(1.045,-0.04, "Spherical+Alt", transform=ax.transAxes, ha='left', va='top', \
