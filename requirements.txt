@@ -1,5 +1,6 @@
+numpy
+matplotlib
+scipy
 astropy
 PyAstronomy
 argparse
-numpy
-matplotlib
