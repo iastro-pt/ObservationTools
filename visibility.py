@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# from __future__ import print_function
 import numpy as np
 from PyAstronomy import pyasl
 from astropy.coordinates import SkyCoord
@@ -317,14 +318,14 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
   # observer.horizon = '-0:34'
   # observer.lat, observer.lon = obs['latitude'], obs['longitude']
   # observer.date = date
-  # print observer.date
+  # print(observer.date)
   # print(observer.previous_rising(ephem.Sun()))
   # print(observer.next_setting(ephem.Sun()))
   # print(observer.previous_rising(ephem.Moon()))
   # print(observer.next_setting(ephem.Moon()))
   # observer.horizon = '-6'
   # noon = observer.next_transit(ephem.Sun())
-  # print noon
+  # print(noon)
   # print(observer.previous_rising(ephem.Sun(), start=noon, use_center=True))
   # print()
 
@@ -375,7 +376,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
 
     if (len(day) == 0) and (len(twi) == 0) and (len(night) == 0):
       print
-      print "VisibilityPlot - no points to draw"
+      print("VisibilityPlot - no points to draw")
       print
 
     mpos = pyasl.moonpos(jds)
@@ -543,7 +544,7 @@ if __name__ == '__main__':
   args = _parser()
 
   target_names = args.targets[0].split(',')
-  # print target_names
+  # print(target_names)
 
   ## Get coordinates for all the targets
   targets = []
@@ -593,10 +594,11 @@ if __name__ == '__main__':
     print('"%s" is not a valid observatory code. Try one of the following:\n' % args.site)
 
     maxCodeLen = max(map(len, available_sites.keys()))
-    print ("{0:"+str(maxCodeLen)+"s}     ").format("Code") + "Observatory name"
-    print ("-" * (21+maxCodeLen))
+    print(("{0:"+str(maxCodeLen)+"s}     ").format("Code") + "Observatory name")
+    print("-" * (21+maxCodeLen))
     for k in sorted(available_sites.keys(), key=lambda s: s.lower()):
-      print ("{0:"+str(maxCodeLen)+"s} --- ").format(k) + available_sites[k]["name"]
+      print(("{0:"+str(maxCodeLen)+"s} --- ").format(k) + available_sites[k]["name"])
+
     sys.exit(1)
 
 
