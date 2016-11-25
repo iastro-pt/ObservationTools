@@ -171,7 +171,7 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
 
   ax.set_xlim([0, 366])
   ax.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
-  ax.set_xticklabels(map(calendar.month_name.__getitem__, months), fontsize=10)
+  ax.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
 
   # Make ax2 responsible for "top" axis and "right" axis
   ax2 = ax.twin()
