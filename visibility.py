@@ -3,7 +3,7 @@
 import numpy as np
 from PyAstronomy import pyasl
 from astropy.coordinates import SkyCoord
-# import ephem
+import ephem
 
 import argparse
 
@@ -23,66 +23,40 @@ def _parser():
     return parser.parse_args()
 
 
-def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, showMoonDist=True, print2file=False):
+def decdeg2dms(dd):
+       is_positive = dd >= 0
+       dd = abs(dd)
+       minutes,seconds = divmod(dd*3600,60)
+       degrees,minutes = divmod(minutes,60)
+       degrees = degrees if is_positive else -degrees
+       return (degrees,minutes,seconds)
+
+
+def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   """
     Plot the visibility of target.
 
     Parameters
     ----------
-    date: int
+    year: int
         The year for which to calculate the visibility.
     targets: list
         List of targets.
         Each target should be a dictionary with keys 'name' and 'coord'.
-        The key 'name' is aa string, 'coord' is a SkyCoord object.
+        The key 'name' is a string, 'coord' is a SkyCoord object.
     observatory: string
         Name of the observatory that pyasl.observatory can resolve.
         Basically, any of pyasl.listObservatories().keys()
-    plotLegend: boolean, optional
-        If True (default), show a legend.
-    showMoonDist : boolean, optional
-        If True (default), the Moon distance will be shown.
     print2file : boolean, optional
         If True, the plot will be dumped to a png-file.
   """
 
-  try:
-    import matplotlib
-    import matplotlib.pylab as plt
-    from mpl_toolkits.axes_grid1 import host_subplot
-    from matplotlib.ticker import MultipleLocator
-    from matplotlib.font_manager import FontProperties
-    from matplotlib import rcParams
-  except ImportError:
-    print('matplotlib is not installed?')
-    sys.exit(1)
-
+  import matplotlib.pylab as plt
+  from mpl_toolkits.axes_grid1 import host_subplot
+  from matplotlib.ticker import MultipleLocator
+  from matplotlib.font_manager import FontProperties
+  from matplotlib import rcParams
   rcParams['xtick.major.pad'] = 12
-
-
-  obs = pyasl.observatory(observatory)
-
-  # observer = ephem.Observer()
-  # observer.pressure = 0
-  # observer.horizon = '-0:34'
-  # observer.lat, observer.lon = obs['latitude'], obs['longitude']
-  # observer.date = date
-  # print observer.date
-  # print(observer.previous_rising(ephem.Sun()))
-  # print(observer.next_setting(ephem.Sun()))
-  # print(observer.previous_rising(ephem.Moon()))
-  # print(observer.next_setting(ephem.Moon()))
-  # observer.horizon = '-6'
-  # noon = observer.next_transit(ephem.Sun())
-  # print noon
-  # print(observer.previous_rising(ephem.Sun(), start=noon, use_center=True))
-  # print()
-
-
-  fig = plt.figure(figsize=(15,10))
-  fig.subplots_adjust(left=0.07, right=0.8, bottom=0.15, top=0.88)
-  ax = host_subplot(111)
-
   font0 = FontProperties()
   font1 = font0.copy()
   font0.set_family('sans-serif')
@@ -90,6 +64,13 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
   font1.set_family('sans-serif')
   font1.set_weight('medium')
 
+  # set the observatory
+  obs = pyasl.observatory(observatory)
+
+
+  fig = plt.figure(figsize=(15,10))
+  fig.subplots_adjust(left=0.07, right=0.8, bottom=0.15, top=0.88)
+  ax = host_subplot(111)
 
   for n, target in enumerate(targets):
 
@@ -97,36 +78,53 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
     target_ra = target_coord.ra.deg
     target_dec = target_coord.dec.deg
 
-    # JD array
-    jdbinsize = 1.0  # every day
-    jd = pyasl.jdcnv(dt.datetime(date, 1, 1))
-    jd_start = pyasl.jdcnv(dt.datetime(date, 1, 1))
-    jd_end = pyasl.jdcnv(dt.datetime(date, 12, 31))
-    jds = np.arange(jd_start, jd_end, jdbinsize)
+    jdbinsize = 1 # every day
+    # jd = pyasl.jdcnv(dt.datetime(date, 1, 1))
+    jd_start = pyasl.jdcnv(dt.datetime(year, 1, 1))
+    jd_end = pyasl.jdcnv(dt.datetime(year, 12, 31))
+    each_day = np.arange(jd_start, jd_end, jdbinsize)
+    jds = []
+
+    ## calculate the mid-dark times
+    sun = ephem.Sun()
+    for day in each_day:
+      date_formatted = '/'.join([str(i) for i in pyasl.daycnv(day)[:-1]])
+      s = ephem.Observer(); 
+      s.date = date_formatted; 
+      s.lat = ':'.join([str(i) for i in decdeg2dms(obs['latitude'])])
+      s.lon = ':'.join([str(i) for i in decdeg2dms(obs['longitude'])])
+      # print s.next_antitransit(sun).tuple()
+      jds.append(ephem.julian_date(s.next_antitransit(sun)))
+    jds = np.array(jds)
+
     # Get JD floating point
     jdsub = jds - np.floor(jds[0])
 
     # Get alt/az of object
     altaz = pyasl.eq2hor(jds, np.ones_like(jds)*target_ra, np.ones_like(jds)*target_dec, \
                         lon=obs['longitude'], lat=obs['latitude'], alt=obs['altitude'])
+    ax.plot( jdsub, altaz[0], '-', color='k')
+
+
     # Get alt/az of Sun
-    sun_position = pyasl.sunpos(jd)
-    sun_ra, sun_dec = sun_position[1], sun_position[2]
-    sunpos_altaz = pyasl.eq2hor(jds, np.ones(jds.size)*sun_ra, np.ones(jds.size)*sun_dec, \
-                                lon=obs['longitude'], lat=obs['latitude'], alt=obs['altitude'])
+    # sun_position = pyasl.sunpos(jd)
+    # sun_ra, sun_dec = sun_position[1], sun_position[2]
+    # sunpos_altaz = pyasl.eq2hor(jds, np.ones(jds.size)*sun_ra, np.ones(jds.size)*sun_dec, \
+                                # lon=obs['longitude'], lat=obs['latitude'], alt=obs['altitude'])
+    # ax.plot( jdsub, sunpos_altaz[0], 'y', linewidth=1.5, label=plabel)
 
     # Define plot label
     plabel = "[%2d]  %s" % (n+1, target['name'])
 
     # Find periods of: day, twilight, and night
-    day = np.where( sunpos_altaz[0] >= 0. )[0]
-    twi = np.where( np.logical_and(sunpos_altaz[0] > -18., sunpos_altaz[0] < 0.) )[0]
-    night = np.where( sunpos_altaz[0] <= -18. )[0]
+    # day = np.where( sunpos_altaz[0] >= 0. )[0]
+    # twi = np.where( np.logical_and(sunpos_altaz[0] > -18., sunpos_altaz[0] < 0.) )[0]
+    # night = np.where( sunpos_altaz[0] <= -18. )[0]
 
-    if (len(day) == 0) and (len(twi) == 0) and (len(night) == 0):
-      print
-      print("VisibilityPlot - no points to draw")
-      print
+    # if (len(day) == 0) and (len(twi) == 0) and (len(night) == 0):
+      # print
+      # print("VisibilityPlot - no points to draw")
+      # print
 
 
     # if len(twi) > 1:
@@ -139,9 +137,7 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
     #   else:
     #     ax.plot( jdsub[twi], altaz[0][twi], "-", color='#BEBEBE', linewidth=1.5)
 
-    # ax.plot( jdsub, sunpos_altaz[0], 'y', linewidth=1.5, label=plabel)
-    ax.plot( jdsub, altaz[0], '-', color='k')
-
+    # number of the target at the top of the curve
     altmax = np.argmax(altaz[0])
     ax.text(jdsub[altmax], altaz[0][altmax], str(n+1), color="b", fontsize=14, \
              fontproperties=font1, va="bottom", ha="center")
@@ -153,8 +149,10 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
       ax.text(1.1, 1.0-float(n+1)*0.04, plabel, ha="left", va="top", transform=ax.transAxes, \
               fontsize=12, fontproperties=font0, color="b")
 
+
   ax.text(1.1, 1.03, "List of targets", ha="left", va="top", transform=ax.transAxes, \
           fontsize=12, fontproperties=font0, color="b")
+
 
   axrange = ax.get_xlim()
   months = range(1, 13)
@@ -232,7 +230,8 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
   ax.yaxis.set_minor_locator(MultipleLocator(5))
   yticks = ax.get_yticks()
   ytickformat = []
-  for t in range(yticks.size): ytickformat.append(str(int(yticks[t]))+r"$^\circ$")
+  for t in range(yticks.size): 
+    ytickformat.append(str(int(yticks[t]))+r"$^\circ$")
   ax.set_yticklabels(ytickformat, fontsize=16)
   ax.set_ylabel("Altitude", fontsize=18)
   yticksminor = ax.get_yticks(minor=True)
@@ -240,7 +239,8 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
   yticksminor = yticksminor[ymind]
   ax.set_yticks(yticksminor, minor=True)
   m_ytickformat = []
-  for t in range(yticksminor.size): m_ytickformat.append(str(int(yticksminor[t]))+r"$^\circ$")
+  for t in range(yticksminor.size): 
+    m_ytickformat.append(str(int(yticksminor[t]))+r"$^\circ$")
   ax.set_yticklabels(m_ytickformat, minor=True)
   ax.set_ylim([0, 91])
 
@@ -251,14 +251,6 @@ def StarObsPlot(date=None, targets=None, observatory=None, plotLegend=True, show
   plt.text(0.5,0.95,"Visibility over %s" % date, \
            transform=fig.transFigure, ha='center', va='bottom', fontsize=20)
 
-  # if plotLegend:
-  #   line1 = matplotlib.lines.Line2D((0,0),(1,1), color='#FDB813', linestyle="-", linewidth=2)
-  #   line2 = matplotlib.lines.Line2D((0,0),(1,1), color='#BEBEBE', linestyle="-", linewidth=2)
-  #   line3 = matplotlib.lines.Line2D((0,0),(1,1), color='k', linestyle="-", linewidth=2)
-
-  #   lgd2 = plt.legend((line1,line2,line3),("day","twilight","night",), \
-  #                       bbox_to_anchor=(0.88, 0.13), loc='best', borderaxespad=0.,prop={'size':12}, fancybox=True)
-  #   lgd2.get_frame().set_alpha(.5)
 
   obsco = "Obs coord.: %8.4f$^\circ$, %8.4f$^\circ$, %4d m" % \
           (obs['longitude'], obs['latitude'], obs['altitude'])
@@ -608,6 +600,6 @@ if __name__ == '__main__':
     ## Plot visibility
     VisibilityPlot(date=date, targets=targets, observatory=args.site)
   elif args.mode == 'starobs':
-    StarObsPlot(date=date, targets=targets, observatory=args.site)
+    StarObsPlot(year=date, targets=targets, observatory=args.site)
 
 
