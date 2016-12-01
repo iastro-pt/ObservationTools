@@ -24,12 +24,13 @@ def _parser():
 
 
 def decdeg2dms(dd):
-       is_positive = dd >= 0
-       dd = abs(dd)
-       minutes,seconds = divmod(dd*3600,60)
-       degrees,minutes = divmod(minutes,60)
-       degrees = degrees if is_positive else -degrees
-       return (degrees,minutes,seconds)
+    """ Convert decimal degrees to deg,min,sec """
+    is_positive = dd >= 0
+    dd = abs(dd)
+    minutes,seconds = divmod(dd*3600,60)
+    degrees,minutes = divmod(minutes,60)
+    degrees = degrees if is_positive else -degrees
+    return (degrees,minutes,seconds)
 
 
 def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
@@ -79,7 +80,6 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
     target_dec = target_coord.dec.deg
 
     jdbinsize = 1 # every day
-    # jd = pyasl.jdcnv(dt.datetime(date, 1, 1))
     jd_start = pyasl.jdcnv(dt.datetime(year, 1, 1))
     jd_end = pyasl.jdcnv(dt.datetime(year, 12, 31))
     each_day = np.arange(jd_start, jd_end, jdbinsize)
@@ -93,7 +93,6 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
       s.date = date_formatted; 
       s.lat = ':'.join([str(i) for i in decdeg2dms(obs['latitude'])])
       s.lon = ':'.join([str(i) for i in decdeg2dms(obs['longitude'])])
-      # print s.next_antitransit(sun).tuple()
       jds.append(ephem.julian_date(s.next_antitransit(sun)))
     jds = np.array(jds)
 
@@ -106,43 +105,16 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
     ax.plot( jdsub, altaz[0], '-', color='k')
 
 
-    # Get alt/az of Sun
-    # sun_position = pyasl.sunpos(jd)
-    # sun_ra, sun_dec = sun_position[1], sun_position[2]
-    # sunpos_altaz = pyasl.eq2hor(jds, np.ones(jds.size)*sun_ra, np.ones(jds.size)*sun_dec, \
-                                # lon=obs['longitude'], lat=obs['latitude'], alt=obs['altitude'])
-    # ax.plot( jdsub, sunpos_altaz[0], 'y', linewidth=1.5, label=plabel)
-
-    # Define plot label
+    # label for each target
     plabel = "[%2d]  %s" % (n+1, target['name'])
 
-    # Find periods of: day, twilight, and night
-    # day = np.where( sunpos_altaz[0] >= 0. )[0]
-    # twi = np.where( np.logical_and(sunpos_altaz[0] > -18., sunpos_altaz[0] < 0.) )[0]
-    # night = np.where( sunpos_altaz[0] <= -18. )[0]
-
-    # if (len(day) == 0) and (len(twi) == 0) and (len(night) == 0):
-      # print
-      # print("VisibilityPlot - no points to draw")
-      # print
-
-
-    # if len(twi) > 1:
-    #   # There are points in twilight
-    #   linebreak = np.where( (jdsub[twi][1:]-jdsub[twi][:-1]) > 2.0*jdbinsize)[0]
-    #   if len(linebreak) > 0:
-    #     plotrjd = np.insert(jdsub[twi], linebreak+1, np.nan)
-    #     plotdat = np.insert(altaz[0][twi], linebreak+1, np.nan)
-    #     ax.plot( plotrjd, plotdat, "-", color='#BEBEBE', linewidth=1.5)
-    #   else:
-    #     ax.plot( jdsub[twi], altaz[0][twi], "-", color='#BEBEBE', linewidth=1.5)
-
-    # number of the target at the top of the curve
+    # number of target at the top of the curve
     altmax = np.argmax(altaz[0])
     ax.text(jdsub[altmax], altaz[0][altmax], str(n+1), color="b", fontsize=14, \
              fontproperties=font1, va="bottom", ha="center")
 
     if n+1 == 29:
+      # too many?
       ax.text(1.1, 1.0-float(n+1)*0.04, "too many targets", ha="left", va="top", transform=ax.transAxes, \
               fontsize=10, fontproperties=font0, color="r")
     else:
@@ -158,7 +130,6 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   months = range(1, 13)
   import calendar
   ndays = [0] + [calendar.monthrange(date, m)[1] for m in months]
-  # ax.set_xlabel("UT [hours]")
 
   if axrange[1]-axrange[0] <= 1.0:
     jdhours = np.arange(0,3,1.0/24.)
@@ -175,7 +146,6 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   ax2 = ax.twin()
   # Set upper x ticks
   ax2.set_xticks(np.cumsum(ndays))
-  # ax2.set_xticklabels(utchours, fontsize=18)
   ax2.set_xlabel("Day")
 
   # Horizon angle for airmass
@@ -209,21 +179,6 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   plt.text(1.045,-0.04, "Spherical+Alt", transform=ax.transAxes, ha='left', va='top', \
            fontsize=10, rotation=90)
 
-  # ax3 = ax.twiny()
-  # ax3.set_frame_on(True)
-  # ax3.patch.set_visible(False)
-  # ax3.xaxis.set_ticks_position('bottom')
-  # ax3.xaxis.set_label_position('bottom')
-  # ax3.spines['bottom'].set_position(('outward', 50))
-  # ax3.spines['bottom'].set_color('k')
-  # ax3.spines['bottom'].set_visible(True)
-
-  # ltime, ldiff = pyasl.localtime.localTime(utchours, np.repeat(obs['longitude'], len(utchours)))
-  # jdltime = jdhours - ldiff/24.
-  # ax3.set_xticks(jdltime)
-  # ax3.set_xticklabels(utchours)
-  # ax3.set_xlim([axrange[0],axrange[1]])
-  # ax3.set_xlabel("Local time [hours]")
 
   ax.set_ylim([0, 91])
   ax.yaxis.set_major_locator(MultipleLocator(15))
@@ -248,8 +203,8 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   ax.yaxis.grid(color='gray', which="minor", linestyle='dotted')
   ax2.xaxis.grid(color='gray', linestyle='dotted')
 
-  plt.text(0.5,0.95,"Visibility over %s" % date, \
-           transform=fig.transFigure, ha='center', va='bottom', fontsize=20)
+  plt.text(0.5,0.95,"Visibility over %s\n - altitudes at mid-dark time -" % date, \
+           transform=fig.transFigure, ha='center', va='bottom', fontsize=16)
 
 
   obsco = "Obs coord.: %8.4f$^\circ$, %8.4f$^\circ$, %4d m" % \
