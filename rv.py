@@ -35,8 +35,14 @@ def main(params):  # obs_times=None, mode='phase', rv_diff=None
                 pass
             else:
                 par, val = line.lower().split('=')
-                parameters[par.strip(' ')] = val.strip(' ')
-            print(line)
+                parameters[par.strip()] = val.strip()
+
+    # Turn most parameters to floats.
+    for key in parameters.keys():
+        if key in ['mean_val', 'k1', 'omega', 'eccentricity', 'tau', 'Period',
+                     'm_star', 'msini ', 'm_true']:
+            parameters[key] = float(parameters[key])
+
 
     print(parameters)
 
