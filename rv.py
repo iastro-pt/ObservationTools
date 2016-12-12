@@ -48,7 +48,13 @@ def companion_semimajor(k_host, m_host, m_companion):
 
 
 def main(params):  # obs_times=None, mode='phase', rv_diff=None
-    """ Do main stuff """
+    """ Do main stuff.
+
+    Parameters
+    ----------
+    params: str
+        Filenamefor text file containing the rv parameters. Format of 'param = value\n'.
+    """
 
     # Load in params and store as a dictionary
     parameters = dict()
