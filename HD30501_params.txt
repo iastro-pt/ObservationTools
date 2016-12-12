@@ -1,6 +1,6 @@
 # ## HD30501 single keplerian parameters
 # Some parameter description and units:
-# mean_val - Mean RV motion           (m/s)
+# mean_val - Mean RV motion           (km/s)
 # k1 - semi-major axis of star       (km/s)
 # omega - Argument of periapsis       (deg)
 # tau - reference time                (JD*)
@@ -10,9 +10,9 @@
 # m_true - Companion true mass (M_jup)
 # i - inclination                     (deg)
 # other ?
-name         = 'HD30501'
+name         = HD30501
 mean_val     = 23.710
-k1           = 1703.1
+k1           = 1.7031
 omega        = 70.4
 eccentricity = 0.741
 tau          = 53851.5
