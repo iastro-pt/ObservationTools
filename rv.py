@@ -68,7 +68,7 @@ def main(params):  # obs_times=None, mode='phase', rv_diff=None
 
     # Turn most parameters to floats.
     for key in parameters.keys():
-        if key in ['mean_val', 'k1', 'omega', 'eccentricity', 'tau', 'Period',
+        if key in ['mean_val', 'k1', 'omega', 'eccentricity', 'tau', 'period',
                    'm_star', 'msini ', 'm_true']:
             parameters[key] = float(parameters[key])
 
