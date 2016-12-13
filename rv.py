@@ -18,9 +18,9 @@ def _parser():
     # parser.add_argument('-o', '--obs_times',  help='Times of previous observations', nargs='+')
     # parser.add_argument('-f', '--files', help='Params and obs-times are file'
     #                    ' names to open', action='store_true')
-    # parser.add_argument('-m', '--mode', help='Display mode '
-    #                     ' e.g. phase or time plot. Default="phase"',
-    #                     choices=['time', 'phase'], default='phase')
+    parser.add_argument('-m', '--mode', help='Display mode '
+                        ' e.g. phase or time plot. Default="phase"',
+                        choices=['time', 'phase'], default='phase')
     return parser.parse_args()
 
 
@@ -47,13 +47,15 @@ def companion_amplitude(k_host, m_host, m_companion):
     return -k_host * m_host / m_companion
 
 
-def main(params):  # obs_times=None, mode='phase', rv_diff=None
+def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
     """ Do main stuff.
 
     Parameters
     ----------
     params: str
         Filenamefor text file containing the rv parameters. Format of 'param = value\n'.
+    mode: str
+        Mode for script to use. Phase, time, future
     """
 
     # Load in params and store as a dictionary
@@ -88,8 +90,12 @@ def main(params):  # obs_times=None, mode='phase', rv_diff=None
 
     # print(parameters)
 
+    if mode == "phase":
+        RV_phase_curve(parameters)
+    else:
+        raise NotImplemented
 
-    print(parameters)
+
 
 
 if __name__ == '__main__':
