@@ -8,11 +8,11 @@
 import argparse
 import numpy as np
 
-try:
-    from ajplanet import pl_rv_array
-    use_ajplanet = True
-except:
-    use_ajplanet = False
+# try:
+#     from ajplanet import pl_rv_array
+#     use_ajplanet = False
+# except:
+#     use_ajplanet = False
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
@@ -349,10 +349,10 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
         # Set the mean rv veloctiy to zero
         param_list[0] = 0
 
-    if use_ajplanet:   # Use ajplanet if available
-        rvs = pl_rv_array(t, *param_list[:])  # *unpacks parameters from list
-    else:              # Use python version
-        rvs = rv_curve_py(t, *param_list[:])  # *unpacks parameters from list
+    # if use_ajplanet:   # Use ajplanet if available
+    #     rvs = pl_rv_array(t, *param_list[:])  # *unpacks parameters from list
+    # else:              # Use python version
+    rvs = rv_curve_py(t, *param_list[:])  # *unpacks parameters from list
 
     return rvs
 
