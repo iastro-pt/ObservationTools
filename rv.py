@@ -14,6 +14,8 @@ try:
 except:
     use_ajplanet = False
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import host_subplot
 
 
 def _parser():
@@ -104,6 +106,69 @@ def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
         raise NotImplemented
 
 
+def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False):
+    """Plot RV phase curve centered on zero.
+
+    Parameters
+    ----------
+    params: dict
+        Parameters of system.
+    cycle_fraction: float
+        Fraction of phase space to plot. Default=1
+    ignore_mean: bool
+        Remove the contribution from the systems mean velocity.
+    #t_vals: float, array-like
+        Times of past observations.
+    t_future: float, array-like
+        Times of future observations.
+
+    Returns
+    -------
+    None:
+        Displays matplotlib figure.
+
+    """
+    phase = np.linspace(-0.5, 0.5, 100) * cycle_fraction
+    t = params["tau"] + phase * params["period"]
+    # t = params[4] + phase * params[5]
+
+    host_rvs = RV_from_params(t, params, ignore_mean=ignore_mean)
+    companion_rvs = RV_from_params(t, params, ignore_mean=ignore_mean, companion=True)
+
+    fig = plt.figure(figsize=(10, 7))
+    fig.subplots_adjust()
+    ax1 = host_subplot(111)
+
+    ax1.plot(phase, host_rvs, label="Host", lw=2, color="k")
+    ax1.set_xlabel("Orbital Phase")
+    ax1.set_ylabel("Host RV (km/s)")
+
+    ax2 = ax1.twinx()
+    ax2.plot(phase, companion_rvs, '--', label="Companion", lw=2)
+    ax2.set_ylabel("Companion RV (km/s)")
+
+    if 'name' in params.keys():
+        plt.title("RV Phase Curve for {}".format(params['name'].upper()))
+    else:
+        plt.title("RV Phase Curve")
+    # if t_vals:
+    #    for t_num, t_val in enumerate(t_vals):
+    #         phi = ((t_val - params[4])/params[5] - 0.5) % 1 + 0.5
+    #         rv_star = RV_from_params(t_val, params, ignore_mean=False)
+    #         rv_planet = RV_from_params(t_val, params, ignore_mean=False, companion=True)
+    #         ax1.plot(phi, rv_star, ".", markersize=12, markeredgewidth=3)
+    #         ax2.plot(phi, rv_planet, ".", markersize=12, markeredgewidth=3)
+
+    # if t_future:
+    #     for t_num, t_val in enumerate(t_future):
+    #         phi = ((t_val - params[4])/params[5] - 0.5) % 1 + 0.5
+    #         rv_star = RV_from_params(t_val, params, ignore_mean=False)
+    #         rv_planet = RV_from_params(t_val, params, ignore_mean=False, companion=True)
+    #         ax1.plot(phi, rv_star, "+", markersize=12, markeredgewidth=3)
+    #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
+
+    plt.legend(loc=0)
+    plt.show()
 
 
 # #######################################################
