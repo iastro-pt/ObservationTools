@@ -24,13 +24,13 @@ def _parser():
     return parser.parse_args()
 
 
-def companion_semimajor(k_host, m_host, m_companion):
-    """ Calcualte the companion RV semi-major axis
+def companion_amplitude(k_host, m_host, m_companion):
+    """ Calcualte the companion RV maximum amplitude.
 
     Parameters
     ----------
     k_host: float
-        Semi-major amplitude of Radial velocity variation of host.
+        Amplitude of radial velocity variation of host.
     m_host: float
         Mass of host
     m_companion: float
@@ -39,12 +39,12 @@ def companion_semimajor(k_host, m_host, m_companion):
     Returns
     -------
     k_companion: float
-        Semi-major RV amplitude of companion.
+        RV amplitude of companion.
 
     """
     sun_jupiter_mass = 1047.56  # Solar mass in jupiter masses
     m_host *= sun_jupiter_mass  # Convert to jupiter mass
-    return - k_host * m_host / m_companion
+    return -k_host * m_host / m_companion
 
 
 def main(params):  # obs_times=None, mode='phase', rv_diff=None
@@ -78,9 +78,16 @@ def main(params):  # obs_times=None, mode='phase', rv_diff=None
     else:
         if 'm_true' in parameters.keys():
             # Use true mass if given
-            parameters['k2'] = companion_semimajor(parameters['k1'], parameters['m_star'], parameters['m_true'])
+            parameters['k2'] = companion_amplitude(parameters['k1'],
+                                                   parameters['m_star'],
+                                                   parameters['m_true'])
         else:
-            parameters['k2'] = companion_semimajor(parameters['k1'], parameters['m_star'], parameters['msini'])
+            parameters['k2'] = companion_amplitude(parameters['k1'],
+                                                   parameters['m_star'],
+                                                   parameters['msini'])
+
+    # print(parameters)
+
 
     print(parameters)
 
