@@ -106,7 +106,7 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
 
 
     # label for each target
-    plabel = "[%2d]  %s" % (n+1, target['name'])
+    plabel = "[{0:2d}]  {1!s}".format(n+1, target['name'])
 
     # number of target at the top of the curve
     altmax = np.argmax(altaz[0])
@@ -154,7 +154,7 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   ax2.set_yticks(airmass_ang)
   airmassformat = []
   for t in range(geo_airmass.size):
-    airmassformat.append("%2.2f" % geo_airmass[t])
+    airmassformat.append("{0:2.2f}".format(geo_airmass[t]))
   ax2.set_yticklabels(airmassformat, rotation=90)
   ax2.set_ylabel("Relative airmass", labelpad=32)
   ax2.tick_params(axis="y", pad=10, labelsize=10)
@@ -173,7 +173,7 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   airmass2 = list(map(lambda ang: pyasl.airmass.airmassSpherical(90. - ang, obs['altitude']), airmass_ang))
   ax22.set_yticks(airmass_ang)
   airmassformat = []
-  for t in range(len(airmass2)): airmassformat.append("%2.2f" % airmass2[t])
+  for t in range(len(airmass2)): airmassformat.append("{0:2.2f}".format(airmass2[t]))
   ax22.set_yticklabels(airmassformat, rotation=90)
   ax22.tick_params(axis="y", pad=10, labelsize=10)
   plt.text(1.045,-0.04, "Spherical+Alt", transform=ax.transAxes, ha='left', va='top', \
@@ -203,12 +203,11 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   ax.yaxis.grid(color='gray', which="minor", linestyle='dotted')
   ax2.xaxis.grid(color='gray', linestyle='dotted')
 
-  plt.text(0.5,0.95,"Visibility over %s\n - altitudes at mid-dark time -" % date, \
+  plt.text(0.5,0.95,"Visibility over {0!s}\n - altitudes at mid-dark time -".format(date), \
            transform=fig.transFigure, ha='center', va='bottom', fontsize=16)
 
 
-  obsco = "Obs coord.: %8.4f$^\circ$, %8.4f$^\circ$, %4d m" % \
-          (obs['longitude'], obs['latitude'], obs['altitude'])
+  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4d} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
 
   plt.text(0.01,0.97, obsco, transform=fig.transFigure, ha='left', va='center', fontsize=10)
   plt.text(0.01,0.95, obs['name'], transform=fig.transFigure, ha='left', va='center', fontsize=10)
@@ -314,7 +313,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
                                 lon=obs['longitude'], lat=obs['latitude'], alt=obs['altitude'])
 
     # Define plot label
-    plabel = "[%2d]  %s" % (n+1, target['name'])
+    plabel = "[{0:2d}]  {1!s}".format(n+1, target['name'])
 
     # Find periods of: day, twilight, and night
     day = np.where( sunpos_altaz[0] >= 0. )[0]
@@ -397,7 +396,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
   ax2.set_yticks(airmass_ang)
   airmassformat = []
   for t in range(geo_airmass.size):
-    airmassformat.append("%2.2f" % geo_airmass[t])
+    airmassformat.append("{0:2.2f}".format(geo_airmass[t]))
   ax2.set_yticklabels(airmassformat, rotation=90)
   ax2.set_ylabel("Relative airmass", labelpad=32)
   ax2.tick_params(axis="y", pad=10, labelsize=10)
@@ -416,7 +415,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
   airmass2 = np.array(map(lambda ang: pyasl.airmass.airmassSpherical(90. - ang, obs['altitude']), airmass_ang))
   ax22.set_yticks(airmass_ang)
   airmassformat = []
-  for t in range(airmass2.size): airmassformat.append("%2.2f" % airmass2[t])
+  for t in range(airmass2.size): airmassformat.append("{0:2.2f}".format(airmass2[t]))
   ax22.set_yticklabels(airmassformat, rotation=90)
   ax22.tick_params(axis="y", pad=10, labelsize=10)
   plt.text(1.045,-0.04, "Spherical+Alt", transform=ax.transAxes, ha='left', va='top', \
@@ -459,7 +458,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
   ax.yaxis.grid(color='gray', which="minor", linestyle='dotted')
   ax2.xaxis.grid(color='gray', linestyle='dotted')
 
-  plt.text(0.5,0.95,"Visibility on %s" % date.date(), \
+  plt.text(0.5,0.95,"Visibility on {0!s}".format(date.date()), \
            transform=fig.transFigure, ha='center', va='bottom', fontsize=20)
 
   if plotLegend:
@@ -471,8 +470,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
                         bbox_to_anchor=(0.88, 0.13), loc='best', borderaxespad=0.,prop={'size':12}, fancybox=True)
     lgd2.get_frame().set_alpha(.5)
 
-  obsco = "Obs coord.: %8.4f$^\circ$, %8.4f$^\circ$, %4d m" % \
-          (obs['longitude'], obs['latitude'], obs['altitude'])
+  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4d} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
 
   plt.text(0.01,0.97, obsco, transform=fig.transFigure, ha='left', va='center', fontsize=10)
   plt.text(0.01,0.95, obs['name'], transform=fig.transFigure, ha='left', va='center', fontsize=10)
@@ -499,24 +497,24 @@ if __name__ == '__main__':
     try:
       targets.append({'name': target_name, 'coord': SkyCoord.from_name(target_name)})
     except name_resolve.NameResolveError as e:
-      print('Could not find target: %s' % target_name)
+      print('Could not find target: {0!s}'.format(target_name))
 
   ## Just print coordinates in STARALT format and exit
   if args.c:
-    print('Coordinates for %s\n' % args.targets[0])
+    print('Coordinates for {0!s}\n'.format(args.targets[0]))
     for target in targets:
       ## name hh mm ss ±dd mm ss
-      out = '%s' % target['name']
+      out = '{0!s}'.format(target['name'])
       ra = target['coord'].ra.hms
-      out += ' %02d %02d %5.3f' % (ra.h, ra.m, ra.s)
+      out += ' {0:02d} {1:02d} {2:5.3f}'.format(ra.h, ra.m, ra.s)
       dec = target['coord'].dec.dms
-      out += ' %02d %02d %5.3f' % (dec.d, dec.m, dec.s)
+      out += ' {0:02d} {1:02d} {2:5.3f}'.format(dec.d, dec.m, dec.s)
       print(out)
 
     sys.exit(0)
 
   ## Actually calculate the visibility curves
-  print('Calculating visibility for %s' % args.targets[0])
+  print('Calculating visibility for {0!s}'.format(args.targets[0]))
 
   import datetime as dt
   if args.date == 'today':
@@ -538,7 +536,7 @@ if __name__ == '__main__':
   ## Find observatory
   available_sites = pyasl.listObservatories(show=False)
   if args.site not in available_sites.keys():
-    print('"%s" is not a valid observatory code. Try one of the following:\n' % args.site)
+    print('"{0!s}" is not a valid observatory code. Try one of the following:\n'.format(args.site))
 
     maxCodeLen = max(map(len, available_sites.keys()))
     print(("{0:"+str(maxCodeLen)+"s}     ").format("Code") + "Observatory name")
