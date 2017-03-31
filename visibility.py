@@ -526,6 +526,8 @@ if __name__ == '__main__':
       print(date)
   else:
     if args.mode == 'staralt':
+      if "-" not in args.date:
+        raise ValueError("Date needs to be provided as YYYY-MM-DD for staralt mode.")
       ymd = [int(i) for i in args.date.split('-')]
       date = dt.datetime(*ymd)
       print(date.date())
