@@ -201,7 +201,7 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
 # Functions for RV calculations
 # #######################################################
 def true_anomaly(ma, ecc, niterationmax=10000):
-    """ Compute the true anomaly using the Newton-Raphson method.
+    """Compute the true anomaly using the Newton-Raphson method.
 
     Parameters
     ----------
@@ -220,8 +220,8 @@ def true_anomaly(ma, ecc, niterationmax=10000):
     Notes
     -----
     Adapted from Rodrigo Diaz.
-    """
 
+    """
     if not isinstance(ma, float):
         ea = ma
     else:
@@ -234,8 +234,8 @@ def true_anomaly(ma, ecc, niterationmax=10000):
     while np.linalg.norm(ea - ea0, ord=1) > 1e-5 or niteration == 0:
         ea0 = ea
 
-        ff = ea - ecc*np.sin(ea) - ma   # Function
-        dff = 1 - ecc*np.cos(ea)        # Derivative
+        ff = ea - ecc * np.sin(ea) - ma   # Function
+        dff = 1 - ecc * np.cos(ea)        # Derivative
 
         # Use Newton method
         ea = ea0 - ff / dff
@@ -247,12 +247,12 @@ def true_anomaly(ma, ecc, niterationmax=10000):
                                'not converged.')
 
     # Compute true anomaly from eccentric anomaly
-    return 2. * np.arctan2(np.sqrt(1. + ecc) * np.sin(ea/2.),
-                           np.sqrt(1. - ecc) * np.cos(ea/2.))
+    return 2. * np.arctan2(np.sqrt(1. + ecc) * np.sin(ea / 2.),
+                           np.sqrt(1. - ecc) * np.cos(ea / 2.))
 
 
 def mean_anomaly(times, t0, period):
-    """ Calculate mean anomaly using period, tau and a time value
+    """Calculate mean anomaly using period, tau and a time value.
 
     Parameters
     ----------
@@ -267,6 +267,7 @@ def mean_anomaly(times, t0, period):
     -------
     ma: array-like
         Mean anomaly.
+
     """
     if not isinstance(times, (int, float)):
         times = times
@@ -276,7 +277,8 @@ def mean_anomaly(times, t0, period):
 
 
 def radial_velocity(gamma, k, ta, omega, ecc):
-    """ Radial velocity equation.
+    """Radial velocity equation.
+
     Parameters
     ----------
     gamma: float
@@ -297,7 +299,8 @@ def radial_velocity(gamma, k, ta, omega, ecc):
 
     Notes
     -----
-    RV = gamma + k *(np.cos(ta + omega) + ecc * np.cos(omega))
+    RV = gamma + k *(np.cos(ta + omega) + ecc * np.cos(omega)).
+
     """
     # Calculate radial velocity of star
     return gamma + k * (np.cos(ta + omega) + ecc * np.cos(omega))
@@ -336,7 +339,7 @@ def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
 
 
 def RV_from_params(t, params, ignore_mean=False, companion=False):
-    """ Get radial velocity values at given times using the orbital parameters.
+    """Get radial velocity values at given times using the orbital parameters.
 
     Parameters
     ----------
@@ -384,7 +387,6 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
 
 
 if __name__ == '__main__':
-
     args = vars(_parser())
     # star_name = args.pop('star_name')
     opts = {k: args[k] for k in args}
