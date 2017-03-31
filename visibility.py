@@ -207,7 +207,7 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
            transform=fig.transFigure, ha='center', va='bottom', fontsize=16)
 
 
-  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4d} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
+  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4f} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
 
   plt.text(0.01,0.97, obsco, transform=fig.transFigure, ha='left', va='center', fontsize=10)
   plt.text(0.01,0.95, obs['name'], transform=fig.transFigure, ha='left', va='center', fontsize=10)
@@ -470,7 +470,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
                         bbox_to_anchor=(0.88, 0.13), loc='best', borderaxespad=0.,prop={'size':12}, fancybox=True)
     lgd2.get_frame().set_alpha(.5)
 
-  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4d} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
+  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4f} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
 
   plt.text(0.01,0.97, obsco, transform=fig.transFigure, ha='left', va='center', fontsize=10)
   plt.text(0.01,0.95, obs['name'], transform=fig.transFigure, ha='left', va='center', fontsize=10)
