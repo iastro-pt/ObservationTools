@@ -10,6 +10,7 @@ import os
 import argparse
 import numpy as np
 import logging
+from typing import Dict, List
 # try:
 #     from ajplanet import pl_rv_array
 #     use_ajplanet = False
@@ -36,8 +37,8 @@ def _parser():
     return parser.parse_args()
 
 
-def companion_amplitude(k_host, m_host, m_companion):
-    """ Calcualte the companion RV maximum amplitude.
+def companion_amplitude(k_host: float, m_host: float, m_companion: float) -> float:
+    """Calcualte the companion RV maximum amplitude.
 
     Parameters
     ----------
@@ -130,7 +131,7 @@ def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
         raise NotImplemented
 
 
-def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False):
+def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False, t_past=False, t_future=False) -> bool:
     """Plot RV phase curve centered on zero.
 
     Parameters
@@ -148,9 +149,10 @@ def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_
 
     Returns
     -------
-    None:
-        Displays matplotlib figure.
+    exit_status: bool
+        Returns 0 if successful.
 
+        Displays matplotlib figure.
     """
     phase = np.linspace(-0.5, 0.5, 100) * cycle_fraction
     t = params["tau"] + phase * params["period"]
@@ -193,7 +195,7 @@ def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_
 
     plt.legend(loc=0)
     plt.show()
-
+    return 0
 
 # #######################################################
 # Functions for RV calculations
