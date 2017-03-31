@@ -532,7 +532,10 @@ if __name__ == '__main__':
       date = dt.datetime(*ymd)
       print(date.date())
     elif args.mode == 'starobs':
-      date = int(args.date)
+      if "-" in args.date:
+        date = int(args.date.split('-')[0])
+      else:
+        date = int(args.date)
       print(date)
 
   ## Find observatory
