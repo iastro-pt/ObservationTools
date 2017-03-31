@@ -337,7 +337,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
       bindist = int((2.0/24.)/jdbinsize)
       firstbin = np.random.randint(0,bindist)
       for mp in range(0, int(len(jds)/bindist)):
-        bind = firstbin+float(mp)*bindist
+        bind = firstbin+mp*bindist
         if altaz[0][bind]-1. < 5.: continue
         ax.text(jdsub[bind], altaz[0][bind]-1., str(int(mdist[bind]))+r"$^\circ$", ha="center", va="top", \
                 fontsize=8, stretch='ultra-condensed', fontproperties=font0, alpha=1.)
