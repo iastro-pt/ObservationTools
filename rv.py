@@ -1,10 +1,11 @@
+"""Radial Velocity calculations:
 
-# Radial Velocity calculations:
+Goals
+-----
+To calcualte when the radial velocity is different by a certian value.
+Plot radial velocity phase curves. Indicating obtained measurement locations.
 
-# Goals:
-# To calcualte when the radial velocity is different by a certian value.
-# Plot radial velocity phase curves. Indicating obtained measurement locations
-
+"""
 import argparse
 import numpy as np
 
