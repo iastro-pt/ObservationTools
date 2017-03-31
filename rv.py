@@ -106,6 +106,7 @@ def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
         Mode for script to use. Phase, time, future.
 
     """
+    only_msini = True   # Use only the msini values not m_true.
     # Load in params and store as a dictionary
     parameters = parse_paramfile(params)
 
@@ -113,7 +114,7 @@ def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
     if 'k2' in parameters.keys():
         pass
     else:
-        if 'm_true' in parameters.keys():
+        if ('m_true' in parameters.keys()) and not only_msini:
             # Use true mass if given
             parameters['k2'] = companion_amplitude(parameters['k1'],
                                                    parameters['m_star'],
