@@ -6,9 +6,10 @@ To calcualte when the radial velocity is different by a certian value.
 Plot radial velocity phase curves. Indicating obtained measurement locations.
 
 """
+import os
 import argparse
 import numpy as np
-
+import logging
 # try:
 #     from ajplanet import pl_rv_array
 #     use_ajplanet = False
@@ -58,32 +59,54 @@ def companion_amplitude(k_host, m_host, m_companion):
     return -k_host * m_host / m_companion
 
 
+def parse_paramfile(param_file: str, path: str=None) -> Dict:
+    """Extract orbit and stellar parameters from parameter file.
+
+    Parameters
+    ----------
+    param_file: str
+        Filename of parameter file.
+    path: str [optional]
+        Path to directory of filename.
+
+    Reuturns
+    --------
+    parameters: dict
+        Paramemters as a {param: value} dictionary.
+    """
+    if path is not None:
+        param_file = os.path.join(path, param_file)
+    parameters = dict()
+    if not os.path.exists(param_file):
+        logging.warning("Parameter file given does not exist. {}".format(param_file))
+
+    with open(param_file, 'r') as f:
+        for line in f:
+            if line.startswith("#"):
+                pass
+            else:
+                par, val = line.lower().split('=')
+                try:
+                    parameters[par.strip()] = float(val.strip())  # Turn parameters to floats if possible.
+                except ValueError:
+                    parameters[par.strip()] = val.strip()
+
+    return parameters
+
+
 def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
-    """ Do main stuff.
+    r"""Do main stuff.
 
     Parameters
     ----------
     params: str
         Filenamefor text file containing the rv parameters. Format of 'param = value\n'.
     mode: str
-        Mode for script to use. Phase, time, future
+        Mode for script to use. Phase, time, future.
+
     """
-
     # Load in params and store as a dictionary
-    parameters = dict()
-    with open(params, 'r') as f:
-        for line in f:
-            if line.startswith("#"):
-                pass
-            else:
-                par, val = line.lower().split('=')
-                parameters[par.strip()] = val.strip()
-
-    # Turn most parameters to floats.
-    for key in parameters.keys():
-        if key in ['mean_val', 'k1', 'omega', 'eccentricity', 'tau', 'period',
-                   'm_star', 'msini ', 'm_true']:
-            parameters[key] = float(parameters[key])
+    parameters = parse_paramfile(params)
 
     # Calculate companion semi-major axis
     if 'k2' in parameters.keys():
