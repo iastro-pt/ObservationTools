@@ -134,8 +134,31 @@ def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
 
     if mode == "phase":
         RV_phase_curve(parameters)
+def min_mid_max(param: List[float]) -> List[float]:
+    """Param with error bars.
+
+    Asolute values taken incease of error in parameter 2.
+    """
+    if param is None:
+        return [None, None, None]
+
+    if isinstance(param, (int, float, np.float32, np.float64, np.int32, np.int64)):
+        # No errorbars
+        return param
+    elif len(param) == 3:
+        # Unequal errorbars
+        if (param[1] > 0):
+            raise(ValueError("Lower error bar should be negative.  x - dx"))
+        if param[2] < 0:
+            raise(ValueError("Lower error bar value should be negative.  x +/- dx"))
+        return [param[0] + param[1], param[0], param[0] + param[2]]
+    elif len(param) == 2:
+        # Equal errorbars
+        if param[1] < 0:
+            raise(ValueError("Equal error bar should be given positive.  x +/- dx"))
+        return [param[0] - param[1], param[0], param[0] + param[1]]
     else:
-        raise NotImplemented
+        return param
 
 
 def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False, t_past=False, t_future=False) -> bool:
