@@ -101,6 +101,8 @@ def parse_obslist(fname: str, path: str=None) -> List[str]:
                 obstimes.append(line.strip())
         debug(pv("obstimes"))
     return obstimes
+
+
 def parse_paramfile(param_file: str, path: str=None) -> Dict:
     """Extract orbit and stellar parameters from parameter file.
 
@@ -127,13 +129,31 @@ def parse_paramfile(param_file: str, path: str=None) -> Dict:
             if line.startswith("#"):
                 pass
             else:
+                if '#' in line:   # Remove comment from end of line
+                    line = line.split("#")[0]
+                if line.endswith("="):
+                    logging.warning(("Parameter missing value in {}.\nLine = {line}."
+                                    " Value set to None.").format(param_file, line))
+                    line = line + " None"   # Add None value when parameter is missing
                 par, val = line.lower().split('=')
-                try:
-                    parameters[par.strip()] = float(val.strip())  # Turn parameters to floats if possible.
-                except ValueError:
-                    parameters[par.strip()] = val.strip()
+                par, val = par.strip(), val.strip()
+                if (val.startswith("[") and val.endswith("]")) or ("," in val):  # Val is a list
+                    parameters[par] = parse_list_string(val)
+                else:
+                    try:
+                        parameters[par] = float(val)  # Turn parameters to floats if possible.
+                    except ValueError:
+                        parameters[par] = val
 
     return parameters
+
+
+def parse_list_string(string):
+    """Parse list of floats out of a string."""
+    string = string.replace("[", "").replace("]", "").strip()
+    list_str = string.split(",")
+    list_str = [float(val) for val in list_str]
+    return list_str
 
 
 def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None, mode='phase', rv_diff=None
@@ -145,7 +165,8 @@ def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None
         Filename for text file containing the rv parameters. Format of 'param = value\n'.
     mode: str
         Mode for script to use. Phase, time, future.
-
+    obs_times: list of str
+        Dates of observations added manually at comand line.
     obs_list: str
         Filename for list which contains obs_times.
     """
