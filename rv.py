@@ -10,6 +10,7 @@ import os
 import argparse
 import numpy as np
 import logging
+from logging import debug
 from typing import Dict, List
 # try:
 #     from ajplanet import pl_rv_array
@@ -19,6 +20,10 @@ from typing import Dict, List
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
+try:
+    from utils_debug import pv
+except ImportError:
+    from ObservationTools.utils_debug import pv
 
 
 def _parser():
@@ -34,6 +39,7 @@ def _parser():
     parser.add_argument('-m', '--mode', help='Display mode '
                         ' e.g. phase or time plot. Default="phase"',
                         choices=['time', 'phase'], default='phase')
+    parser.add_argument("--debug", help="Turning on debug output", action='store_true', default=False)
     return parser.parse_args()
 
 
@@ -390,6 +396,15 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
 if __name__ == '__main__':
     args = vars(_parser())
     # star_name = args.pop('star_name')
+    debug_on = args.pop('debug')
     opts = {k: args[k] for k in args}
+
+    # debug = args.pop('debug')
+    if debug_on:
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(levelname)s %(message)s')
+    else:
+        logging.basicConfig(level=logging.WARNING,
+                            format='%(asctime)s %(levelname)s %(message)s')
 
     main(**opts)
