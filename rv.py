@@ -34,6 +34,7 @@ def _parser():
     # #  prediciting separated lines
     # parser.add_argument('-r', '--rv_diff', help='RV difference threshold to find')
     # parser.add_argument('-o', '--obs_times',  help='Times of previous observations', nargs='+')
+    parser.add_argument('-l', '--obs_list', help='File with list of obs times.', type=str, default=None)
     # parser.add_argument('-f', '--files', help='Params and obs-times are file'
     #                    ' names to open', action='store_true')
     parser.add_argument('-m', '--mode', help='Display mode '
@@ -66,6 +67,40 @@ def companion_amplitude(k_host: float, m_host: float, m_companion: float) -> flo
     return -k_host * m_host / m_companion
 
 
+def parse_obslist(fname: str, path: str=None) -> List[str]:
+    # Parse Obslist file containing list of dates/times
+    """Parse Obslist file containing list of dates/times.
+
+    Parameters
+    ----------
+    fname: str
+        Filename of obs_list file.
+    path: str [optional]
+        Path to directory of filename.
+
+    Returns
+    --------
+    times: list of strings
+        Observation times in a list.
+    """
+    if path is not None:
+        fname = os.path.join(path, fname)
+    if not os.path.exists(fname):
+        logging.warning("Obs_list file given does not exist. {}".format(fname))
+
+    obstimes = list()
+    with open(fname, 'r') as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            else:
+                if "#" in line:   # Remove comment from end of line
+                    line = line.split("#")[0]
+                if "." in line:
+                    line = line.split(".")[0]   # remove fractions of seconds.
+                obstimes.append(line.strip())
+        debug(pv("obstimes"))
+    return obstimes
 def parse_paramfile(param_file: str, path: str=None) -> Dict:
     """Extract orbit and stellar parameters from parameter file.
 
@@ -101,7 +136,7 @@ def parse_paramfile(param_file: str, path: str=None) -> Dict:
     return parameters
 
 
-def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
+def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None, mode='phase', rv_diff=None
     r"""Do main stuff.
 
     Parameters
@@ -111,11 +146,21 @@ def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
     mode: str
         Mode for script to use. Phase, time, future.
 
+    obs_list: str
+        Filename for list which contains obs_times.
     """
     only_msini = True   # Use only the msini values not m_true.
     # Load in params and store as a dictionary
     parameters = parse_paramfile(params)
 
+    # Parse obs_list
+    if obs_list is not None:
+        obs_list_vals = parse_obslist(obs_list)
+        debug(pv("obs_list_vals"))
+        if obs_times is None:
+            obs_times = obs_list_vals
+        else:
+            obs_times = obs_times + obs_list_vals
     # Calculate companion semi-major axis
     if 'k2' in parameters.keys():
         pass
