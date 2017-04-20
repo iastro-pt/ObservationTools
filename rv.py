@@ -1,4 +1,4 @@
-"""Radial Velocity calculations:
+"""Radial Velocity calculations.
 
 Goals
 -----
@@ -76,7 +76,7 @@ def parse_paramfile(param_file: str, path: str=None) -> Dict:
     path: str [optional]
         Path to directory of filename.
 
-    Reuturns
+    Returns
     --------
     parameters: dict
         Paramemters as a {param: value} dictionary.
@@ -107,7 +107,7 @@ def main(params, mode="phase"):  # obs_times=None, mode='phase', rv_diff=None
     Parameters
     ----------
     params: str
-        Filenamefor text file containing the rv parameters. Format of 'param = value\n'.
+        Filename for text file containing the rv parameters. Format of 'param = value\n'.
     mode: str
         Mode for script to use. Phase, time, future.
 
@@ -161,7 +161,7 @@ def min_mid_max(param: List[float]) -> List[float]:
         return param
 
 
-def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False, t_past=False, t_future=False) -> bool:
+def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False, t_past=False, t_future=False) -> int:
     """Plot RV phase curve centered on zero.
 
     Parameters
@@ -226,6 +226,7 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
     plt.legend(loc=0)
     plt.show()
     return 0
+
 
 # #######################################################
 # Functions for RV calculations
