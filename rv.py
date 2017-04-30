@@ -30,7 +30,7 @@ except ImportError:
 
 def _parser():
     parser = argparse.ArgumentParser(description='Radial velocity plotting')
-    parser.add_argument('params', help='RV parameters filename')
+    parser.add_argument('params', help='RV parameters filename', type=str)
     # parser.add_argument('-d', '--date', default='today',
     #                     help='Date in format YYYY-MM-DD. Default is today.')
     # #  prediciting separated lines
@@ -209,7 +209,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None
     # Test of core parameters
     for key in ["name", "k1", "eccentricity", "omega", "tau", "period"]:
         if key not in parameters.keys():
-            raise ValueError("Core RV parameter not provided in param file, '{}'".format(key))
+            raise ValueError("A core parameter was not provided in param file, '{}'".format(key))
 
     if "mean_val" not in parameters.keys():
         logging.info("mean_val parameter was not provided so set to 0 km/s")
