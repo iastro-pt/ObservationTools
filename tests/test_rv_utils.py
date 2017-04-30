@@ -55,3 +55,28 @@ def test_mean_anomaly(t, t0, p):
 
     assert len(t) == len(ma)
     assert isinstance(t, np.ndarray)
+
+
+@pytest.mark.xfail
+def test_radial_velocity():
+    assert False
+# def radial_velocity(gamma, k, ta, omega, ecc):
+#     # Calculate radial velocity of star
+#     return gamma + k * (np.cos(ta + omega) + ecc * np.cos(omega))
+
+
+@pytest.mark.xfail
+def test_rv_curve():
+    assert False
+#def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
+#     ma = mean_anomaly(times, t0, period)
+#     ta = true_anomaly(ma, ecc)
+#     rv = radial_velocity(gamma, k, ta, omega, ecc)
+#     return rv
+
+@pytest.mark.xfail
+def test_RV_from_params():
+    assert False
+# def RV_from_params(t, params, ignore_mean=False, companion=False):
+#     """Get radial velocity values at given times using the orbital parameters.
+#     return rvs
