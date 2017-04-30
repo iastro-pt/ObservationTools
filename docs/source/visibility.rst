@@ -1,0 +1,5 @@
+===============
+Visibility
+===============
+
+Explain ``visibility.py``...

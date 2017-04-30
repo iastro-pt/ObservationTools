@@ -10,7 +10,8 @@ Welcome to ObservationTools's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   visibility
+   rv
 
 Indices and tables
 ==================
