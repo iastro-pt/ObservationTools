@@ -13,6 +13,8 @@ import numpy as np
 import logging
 from logging import debug
 from typing import Dict, List
+from astropy.constants import c
+import astropy.units as u
 from utils.rv_utils import RV_from_params
 # try:
 #     from ajplanet import pl_rv_array
@@ -26,6 +28,8 @@ try:
     from utils_debug import pv
 except ImportError:
     from utils.utils_debug import pv
+
+c_km_s = c.to(u.kilometer / u.second)  # Speed of light in km/s
 
 
 def _parser():
