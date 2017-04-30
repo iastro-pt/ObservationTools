@@ -7,6 +7,7 @@ Plot radial velocity phase curves. Indicating obtained measurement locations.
 
 """
 import os
+import ephem
 import argparse
 import numpy as np
 import logging
@@ -34,7 +35,8 @@ def _parser():
     #                     help='Date in format YYYY-MM-DD. Default is today.')
     # #  prediciting separated lines
     # parser.add_argument('-r', '--rv_diff', help='RV difference threshold to find')
-    # parser.add_argument('-o', '--obs_times',  help='Times of previous observations', nargs='+')
+    parser.add_argument('-o', '--obs_times', help='Times of previous observations YYYY-MM-DD format',
+                        nargs='+', default=None)
     parser.add_argument('-l', '--obs_list', help='File with list of obs times.', type=str, default=None)
     # parser.add_argument('-f', '--files', help='Params and obs-times are file'
     #                    ' names to open', action='store_true')
@@ -157,8 +159,37 @@ def parse_list_string(string):
     return list_str
 
 
+def obs_time_jd(obs_times=None, obs_list=None):
+    """Combine observation dates and turn to jd.
+
+    Parameters
+    ----------
+    obs_times: list of str
+        List of dates entered at command line.
+    obs_list: str or None
+        Filename to observation list.
+
+    Returns
+    -------
+    Dates: list of floats
+        Combined dates converted to julian dates.
+    """
+    if obs_list is not None:
+        obs_list_vals = parse_obslist(obs_list)
+        debug(pv("obs_list_vals"))
+        if obs_times is None:
+            obs_times = obs_list_vals
+        else:
+            obs_times = obs_times + obs_list_vals
+
+    debug(pv("obs_times"))
+    jds = [ephem.julian_date(t) for t in obs_times]
+    debug(pv("jds"))
+    return jds
+
+
 def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None, mode='phase', rv_diff=None
-    r"""Do main stuff.
+    r"""Radial velocity displays.
 
     Parameters
     ----------
@@ -167,40 +198,129 @@ def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None
     mode: str
         Mode for script to use. Phase, time, future.
     obs_times: list of str
-        Dates of observations added manually at comand line.
+        Dates of observations added manually at comand line of format YYYY-MM-DD.
     obs_list: str
-        Filename for list which contains obs_times.
+        Filename for list which contains obs_times (YYY-MM-DD HH:MM:SS).
     """
     only_msini = True   # Use only the msini values not m_true.
     # Load in params and store as a dictionary
     parameters = parse_paramfile(params)
 
-    # Parse obs_list
-    if obs_list is not None:
-        obs_list_vals = parse_obslist(obs_list)
-        debug(pv("obs_list_vals"))
-        if obs_times is None:
-            obs_times = obs_list_vals
-        else:
-            obs_times = obs_times + obs_list_vals
+    # combine obs_times and obs_list and turn into jd.
+    obs_jd = obs_time_jd(obs_times, obs_list)
+
     # Calculate companion semi-major axis
-    if 'k2' in parameters.keys():
+    if mode in ("error", "indiv"):
         pass
     else:
-        if ('m_true' in parameters.keys()) and not only_msini:
-            # Use true mass if given
-            parameters['k2'] = companion_amplitude(parameters['k1'],
-                                                   parameters['m_star'],
-                                                   parameters['m_true'])
+        if "k2" in parameters.keys():
+            pass
         else:
-            parameters['k2'] = companion_amplitude(parameters['k1'],
-                                                   parameters['m_star'],
-                                                   parameters['msini'])
-
-    # print(parameters)
+            if ('m_true' in parameters.keys()) and not only_msini:
+                # Use true mass if given
+                parameters['k2'] = companion_amplitude(parameters['k1'],
+                                                       parameters['m_star'],
+                                                       parameters['m_true'])
+            else:
+                parameters['k2'] = companion_amplitude(parameters['k1'],
+                                                       parameters['m_star'],
+                                                       parameters['msini'])
 
     if mode == "phase":
         RV_phase_curve(parameters)
+    elif mode == "specdiff":
+        differential_analysis(parameters, obs_jd)
+    elif mode == "error":
+        error_analysis(parameters)
+    elif mode == "indiv":
+        individual_errorbar(parameters)
+    elif mode == "diff":
+        # simple diff
+        rv_diff(parameters, obs_jd)
+    else:
+        raise NotImplementedError("Other modes are not Implemented yet.")
+
+
+def individual_errorbar(params):
+    """Make plots just varying one parameter at a time."""
+    for var_par in ["k1", "m_star", "period", "msini"]:
+        p = [params["period"][0] if isinstance(params["period"], list) else params["period"]]
+        today = ephem.julian_date(ephem.now())
+        t_space = np.linspace(today, today + p[0], 100)
+        plt.figure()
+        rv_params = {}
+        for key in params:
+            if key != var_par:
+                if isinstance(params[key], list):
+                    rv_params[key] = params[key][0]
+                else:
+                    rv_params[key] = params[key]
+        for value in min_mid_max(params[var_par]):
+            rv_params[var_par] = value
+            rv_params["k2"] = companion_amplitude(rv_params['k1'],
+                                                  rv_params['m_star'],
+                                                  rv_params['msini'])
+
+            plt.plot(t_space, RV_from_params(t_space, rv_params, ignore_mean=True, companion=True))
+            # plt.plot(t_space, RV_from_params(t_space, rv_params, ignore_mean=True, companion=False))
+        plt.xlim()
+        plt.ylabel("Companion RV")
+        plt.xlabel("JD")
+        plt.title("Bounds analysis for {0!s}".format(var_par))
+        plt.legend()
+        plt.savefig("Test_errors_{}.png".format(var_par))
+    plt.show()
+
+
+def error_analysis(params=None, obs_times=None):
+    """Each parameter has error bars (or not).
+
+    [val, lower, upper].
+    """
+    # simple test of altering one paramerter
+    today = ephem.julian_date(ephem.now())
+    t_p = params["period"]
+    if isinstance(t_p, list):
+        t_p = t_p[0]
+
+    t_space = np.linspace(today, today + t_p, 100)
+    if "k2" not in params.keys():
+        params["k2"] = None
+    # need to reduce number of parameters 4 at a time?.
+
+    tau = params["tau"]
+    tau = (tau[0] if isinstance(tau, list) else tau)
+    mean_val = params["mean_val"]
+    mean_val = (mean_val[0] if isinstance(mean_val, list) else mean_val)
+    period = params["period"]
+    period = (period[0] if isinstance(period, list) else period)
+
+    p_list = []
+    for key in ["k1", "eccentricity", "omega", "msini", "m_true", "m_star"]:
+        p_list.append(min_mid_max(params[key]))
+
+    error_iter = itertools.product(*p_list)
+    for i, (kk, ee, ww, mm, mt, ms) in enumerate(error_iter):
+
+        # Calculate k2
+        kk2 = companion_amplitude(kk, ms, mm)
+
+        these_params = {"msini": mm, "m_true": mt, "tau": tau, "period": period,
+                        "k2": kk2, "k1": kk, "mean_val": mean_val, "omega": ww,
+                        "eccentricity": ee}
+        debug(pv("(kk, ee, ww, mm, mt, ms, kk2)"))
+        comp_rvs = RV_from_params(t_space, these_params, ignore_mean=True, companion=True)
+
+        plt.plot(t_space, comp_rvs, alpha=0.5, label="{}".format(i))
+        debug(pv("i"))
+    plt.legend()
+    plt.title("test of many lines")
+    plt.savefig("Test_errors_many_params.png")
+    plt.show()
+
+    return 0
+
+
 def min_mid_max(param: List[float]) -> List[float]:
     """Param with error bars.
 
