@@ -5,6 +5,48 @@ import rv
 from rv import obs_time_jd
 
 
+def test_parse_obslist():
+    test_file = "tests/test_obstimes.txt"
+    obs_list = rv.parse_obslist(test_file)
+    assert isinstance(obs_list, list)
+    print(obs_list)
+    assert sorted(obs_list) == sorted(["2012-08-14 12:44:05", "2012-09-24 13:12:10"])
+
+
+def test_parse_params():
+    param_file = "tests/test_params.txt"
+    params = rv.parse_paramfile(param_file)
+
+    assert isinstance(params, dict)
+    assert "name" in params.keys()
+    assert params["name"] == "hd30501"
+    assert "period" in params.keys()
+    assert isinstance(params["period"], float)
+
+
+def test_mid_min_max():
+    """Test error bars get added correctly.
+
+     For parsing paramerers with errorbars."""
+    param_1 = [10, -5, 2.5]
+    assert np.allclose(rv.min_mid_max(param_1), [5, 10, 12.5])
+    param_2 = [5.1, 2]
+    assert np.allclose(rv.min_mid_max(param_2), [3.1, 5.1, 7.1])
+    param_3 = None
+    assert rv.min_mid_max(param_3) == [None, None, None]
+    param_3 = 1
+    assert rv.min_mid_max(param_3) == 1  # No change
+    param_4 = [1]
+    assert rv.min_mid_max(param_4) == [1]  # No change
+
+    with pytest.raises(ValueError):
+        rv.min_mid_max([1, 2, 3])
+    with pytest.raises(ValueError):
+        rv.min_mid_max([1, -2])
+    with pytest.raises(ValueError):
+        rv.min_mid_max([1, -2, -3])
+
+
 def test_obs_times_jd():
     obs_times = ["2017-05-01", "2015-01-02", "2016-04-05 12:34:15"]
     jd = obs_time_jd(obs_times=obs_times)
