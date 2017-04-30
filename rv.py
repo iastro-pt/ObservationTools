@@ -206,6 +206,15 @@ def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None
     # Load in params and store as a dictionary
     parameters = parse_paramfile(params)
 
+    # Test of core parameters
+    for key in ["name", "k1", "eccentricity", "omega", "tau", "period":
+        if key not in parameters.keys():
+            raise ValueError("Core RV parameter not provided in param file, '{}'".format(key))
+
+    if "mean_val" not in parameters.keys():
+        logging.info("mean_val parameter was not provided so set to 0 km/s")
+        parameters["mean_val"] = 0.0
+
     # combine obs_times and obs_list and turn into jd.
     obs_jd = obs_time_jd(obs_times, obs_list)
 
