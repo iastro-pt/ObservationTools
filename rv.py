@@ -207,7 +207,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None
     parameters = parse_paramfile(params)
 
     # Test of core parameters
-    for key in ["name", "k1", "eccentricity", "omega", "tau", "period":
+    for key in ["name", "k1", "eccentricity", "omega", "tau", "period"]:
         if key not in parameters.keys():
             raise ValueError("Core RV parameter not provided in param file, '{}'".format(key))
 
