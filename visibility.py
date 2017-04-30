@@ -207,7 +207,7 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
            transform=fig.transFigure, ha='center', va='bottom', fontsize=16)
 
 
-  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4d} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
+  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4f} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
 
   plt.text(0.01,0.97, obsco, transform=fig.transFigure, ha='left', va='center', fontsize=10)
   plt.text(0.01,0.95, obs['name'], transform=fig.transFigure, ha='left', va='center', fontsize=10)
@@ -337,7 +337,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
       bindist = int((2.0/24.)/jdbinsize)
       firstbin = np.random.randint(0,bindist)
       for mp in range(0, int(len(jds)/bindist)):
-        bind = firstbin+float(mp)*bindist
+        bind = firstbin+mp*bindist
         if altaz[0][bind]-1. < 5.: continue
         ax.text(jdsub[bind], altaz[0][bind]-1., str(int(mdist[bind]))+r"$^\circ$", ha="center", va="top", \
                 fontsize=8, stretch='ultra-condensed', fontproperties=font0, alpha=1.)
@@ -470,7 +470,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
                         bbox_to_anchor=(0.88, 0.13), loc='best', borderaxespad=0.,prop={'size':12}, fancybox=True)
     lgd2.get_frame().set_alpha(.5)
 
-  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4d} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
+  obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4f} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
 
   plt.text(0.01,0.97, obsco, transform=fig.transFigure, ha='left', va='center', fontsize=10)
   plt.text(0.01,0.95, obs['name'], transform=fig.transFigure, ha='left', va='center', fontsize=10)
@@ -526,11 +526,16 @@ if __name__ == '__main__':
       print(date)
   else:
     if args.mode == 'staralt':
+      if "-" not in args.date:
+        raise ValueError("Date needs to be provided as YYYY-MM-DD for staralt mode.")
       ymd = [int(i) for i in args.date.split('-')]
       date = dt.datetime(*ymd)
       print(date.date())
     elif args.mode == 'starobs':
-      date = int(args.date)
+      if "-" in args.date:
+        date = int(args.date.split('-')[0])
+      else:
+        date = int(args.date)
       print(date)
 
   ## Find observatory
