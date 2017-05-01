@@ -1,5 +1,5 @@
 import numpy as np
-
+import datetime
 # #######################################################
 # Functions for RV calculations
 # #######################################################
@@ -195,3 +195,45 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
     rvs = rv_curve_py(t, *param_list[:])  # *unpacks parameters from list
 
     return rvs
+
+
+def jd2datetime(jd):
+    """Convert from a julian-date to a datetime object.
+
+    Parameters
+    ----------
+    jd: float
+        Julian date to calculate datetime for.
+
+    Returns
+    -------
+    dt: datetime object
+        Datetime of julian date.
+
+    Inspiration from https://stackoverflow.com/questions/13943062/"""
+    JULIAN_EPOCH = datetime.datetime(2000, 1, 1, 12) # noon (the epoch name is unrelated)
+    J2000_JD = datetime.timedelta(2451545)           # julian epoch in julian dates
+
+    dt = datetime.timedelta(jd) + JULIAN_EPOCH - J2000_JD
+    return dt
+
+
+def datetime2jd(dt):
+    """Convert from a datetime to a jd object.
+
+    Test against pyehem.julian_date()
+
+    Parameters
+    ----------
+    dt: datetime object
+        Datetime for date to calcualte jd.
+
+    Inspiration from https://stackoverflow.com/questions/13943062/
+    """
+    JULIAN_EPOCH = datetime.datetime(2000, 1, 1, 12) # noon (the epoch name is unrelated)
+    J2000_JD = datetime.timedelta(2451545)           # julian epoch in julian dates
+
+    jd = dt - JULIAN_EPOCH + J2000_JD
+
+    jd = jd.total_seconds() / (24 * 60 * 60)  # Turn timedelta into a float
+    return jd

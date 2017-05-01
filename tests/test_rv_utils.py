@@ -1,10 +1,12 @@
+import ephem
 import pytest
+import datetime
 import numpy as np
-from utils.rv_utils import mean_anomaly
-from utils.rv_utils import true_anomaly
-
 from hypothesis import strategies as st
 from hypothesis import given, example, assume
+
+from utils.rv_utils import mean_anomaly, true_anomaly
+from utils.rv_utils import jd2datetime, datetime2jd
 
 
 # issue with limits  0-pi only
@@ -74,9 +76,34 @@ def test_rv_curve():
 #     rv = radial_velocity(gamma, k, ta, omega, ecc)
 #     return rv
 
+
 @pytest.mark.xfail
 def test_RV_from_params():
     assert False
 # def RV_from_params(t, params, ignore_mean=False, companion=False):
 #     """Get radial velocity values at given times using the orbital parameters.
 #     return rvs
+
+
+@pytest.mark.parametrize("jd, expected", [
+    (2400000.5, (1858, 11, 17)),
+    (2458130.1, (2018, 1, 11, 14, 24, 0))])
+def test_jd2datetime(jd, expected):
+    assert abs(jd2datetime(jd) - datetime.datetime(*expected)) < datetime.timedelta(seconds=1)
+
+
+@pytest.mark.parametrize("date, expected", [
+    ((2012, 2, 12, 11, 31, 10), 2455969.979977),
+    ((1990, 9, 6, 20), 2448141.333333)])
+def test_datetime2jd(date, expected):
+    d = datetime.datetime(*date)
+    assert np.allclose(datetime2jd(d), expected)
+    assert np.allclose(datetime2jd(d), ephem.julian_date(d))
+
+
+@given(st.floats(min_value=2200000, max_value=2600000))
+def test_jdconversions(jd):
+    """Test jd2datetime and datetime2jd are reversable"""
+
+    assert np.allclose(datetime2jd(jd2datetime(jd)), jd)
+    assert np.allclose(ephem.julian_date(jd2datetime(jd)), datetime2jd(jd2datetime(jd)))
