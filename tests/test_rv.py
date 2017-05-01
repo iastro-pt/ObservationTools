@@ -70,3 +70,10 @@ def test_both_obs_times_jd():
         jd_expected_results = [2457874.5, 2457024.5, 2457484.023784722, 2456154.030613426, 2456195.050115741]
         assert np.allclose(jd, jd_expected_results)
         assert np.all([isinstance(j, float) for j in jd])
+
+def test_neither_obs_times_jd():
+        obs_list =  None
+        obs_times = None
+        jd = obs_time_jd(obs_times=obs_times, obs_list=obs_list)
+        jd_expected_results = None
+        assert jd is jd_expected_results

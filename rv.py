@@ -170,7 +170,7 @@ def obs_time_jd(obs_times=None, obs_list=None):
 
     Parameters
     ----------
-    obs_times: list of str
+    obs_times: list of str or None
         List of dates entered at command line.
     obs_list: str or None
         Filename to observation list.
@@ -180,6 +180,9 @@ def obs_time_jd(obs_times=None, obs_list=None):
     Dates: list of floats
         Combined dates converted to julian dates.
     """
+    if (obs_list is None) and (obs_times is None):
+        return None
+
     if obs_list is not None:
         obs_list_vals = parse_obslist(obs_list)
         debug(pv("obs_list_vals"))
