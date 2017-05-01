@@ -13,9 +13,11 @@ import numpy as np
 import logging
 from logging import debug
 from typing import Dict, List
+from datetime import datetime
 from astropy.constants import c
 import astropy.units as u
 from utils.rv_utils import RV_from_params
+from utils.rv_utils import jd2datetime
 # try:
 #     from ajplanet import pl_rv_array
 #     use_ajplanet = False
@@ -35,8 +37,8 @@ c_km_s = c.to(u.kilometer / u.second)  # Speed of light in km/s
 def _parser():
     parser = argparse.ArgumentParser(description='Radial velocity plotting')
     parser.add_argument('params', help='RV parameters filename', type=str)
-    # parser.add_argument('-d', '--date', default='today',
-    #                     help='Date in format YYYY-MM-DD. Default is today.')
+    parser.add_argument('-d', '--date', default=None,
+                        help='Reference date in format YYYY-MM-DD [HH:MM:SS]. Default=None uses time of now.')
     # #  prediciting separated lines
     # parser.add_argument('-r', '--rv_diff', help='RV difference threshold to find')
     parser.add_argument('-o', '--obs_times', help='Times of previous observations YYYY-MM-DD format',
@@ -46,7 +48,7 @@ def _parser():
     #                    ' names to open', action='store_true')
     parser.add_argument('-m', '--mode', help='Display mode '
                         ' e.g. phase or time plot. Default="phase"',
-                        choices=['time', 'phase'], default='phase')
+                        choices=['phase', 'time'], default='phase', type=str)
     parser.add_argument("--debug", help="Turning on debug output", action='store_true', default=False)
     return parser.parse_args()
 
@@ -192,7 +194,7 @@ def obs_time_jd(obs_times=None, obs_list=None):
     return jds
 
 
-def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None, mode='phase', rv_diff=None
+def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs_times=None, mode='phase', rv_diff=None
     r"""Radial velocity displays.
 
     Parameters
@@ -205,6 +207,8 @@ def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None
         Dates of observations added manually at comand line of format YYYY-MM-DD.
     obs_list: str
         Filename for list which contains obs_times (YYY-MM-DD HH:MM:SS).
+    date: str
+        Reference date for some modes. Defaults=None)
     """
     only_msini = True   # Use only the msini values not m_true.
     # Load in params and store as a dictionary
@@ -240,10 +244,11 @@ def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None
                                                        parameters['msini'])
 
     if mode == "phase":
-        if obs_jd is None:
-            RV_phase_curve(parameters)
-        else:
             RV_phase_curve(parameters, t_past=obs_jd)
+    elif mode == "time":
+        if date is not None:
+            date = ephem.julian_date(date)
+        RV_time_curve(parameters, t_past=obs_jd, start_day=date)
     elif mode == "specdiff":
         differential_analysis(parameters, obs_jd)
     elif mode == "error":
@@ -431,6 +436,101 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
     plt.show()
     return 0
 
+
+# Lots of duplication - could be improved
+def RV_time_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False, t_past=False, t_future=False, start_day=None) -> int:
+    """Plot RV phase curve centered on zero.
+
+    Parameters
+    ----------
+    params: dict
+        Parameters of system.
+    cycle_fraction: float
+        Fraction of phase space to plot. (Default=1)
+    ignore_mean: bool
+        Remove the contribution from the systems mean velocity. (Default=False)
+    t_past: float, array-like
+        Times of past observations in julian days.
+    t_future: float, array-like
+        Times of future observations  in julian days.
+    start_day: str
+        Day to being RV curve from in julian days. The Default=None sets the start time to ephem.now().
+
+    Returns
+    -------
+    exit_status: bool
+        Returns 0 if successful.
+
+        Displays matplotlib figure.
+    """
+    if start_day is None:
+        ephem_now = ephem.now()
+        t_start = ephem.julian_date(ephem_now)
+    else:
+        t_start = start_day
+
+    # Make curve from start of t_past
+    if isinstance(t_past, (float)):
+        obs_start = t_past
+    elif t_past is not None:
+        obs_start = np.min(t_past)
+    else:
+        obs_start = t_start
+    # Specify 100 points per period
+    num_cycles = ((t_start + params["period"]*cycle_fraction) - np.min([t_start, obs_start])) / params["period"]
+    num_points = np.ceil(100 * num_cycles)
+    if num_points > 10000:
+        debug(pv("num_points"))
+        raise ValueError("num_points is to large")
+
+    t_space = np.linspace(min([t_start, obs_start]), t_start + params["period"]*cycle_fraction, num_points)
+
+    host_rvs = RV_from_params(t_space, params, ignore_mean=ignore_mean)
+    companion_rvs = RV_from_params(t_space, params, ignore_mean=ignore_mean, companion=True)
+
+    fig = plt.figure(figsize=(10, 7))
+    fig.subplots_adjust()
+    ax1 = host_subplot(111)
+    ax1.plot(t_space - t_start, host_rvs, label="Host", lw=2, color="k")
+
+    start_dt = jd2datetime(t_start)
+    if (start_dt.hour == 0) and (start_dt.minute == 0) and (start_dt.second == 0):
+        start_string = datetime.strftime(start_dt, "%Y-%m-%d")
+    else:
+        start_string = datetime.strftime(start_dt, "%Y-%m-%d %H:%M:%S")   # Issue with 00:00:01 not appearing
+    ax1.set_xlabel("Days from {!s}".format(start_string))
+
+    ax1.set_ylabel("Host RV (km/s)")
+
+    ax2 = ax1.twinx()
+    ax2.plot(t_space - t_start, companion_rvs, '--', label="Companion", lw=2)
+    ax2.set_ylabel("Companion RV (km/s)")
+
+    if 'name' in params.keys():
+        plt.title("Radial Velocity Curve for {}".format(params['name'].upper()))
+    else:
+        plt.title("Radial Velocity Curve")
+    if t_past is not None:
+        t_past = np.asarray(t_past)
+        #for t_num, t_val in enumerate(t_past):
+        rv_star = RV_from_params(t_past, params, ignore_mean=False)
+        rv_planet = RV_from_params(t_past, params, ignore_mean=False, companion=True)
+        ax1.plot(t_past - t_start, rv_star, ".", markersize=10, markeredgewidth=2, label="Host Obs")
+        ax2.plot(t_past - t_start, rv_planet, "+", markersize=10, markeredgewidth=2, label="Comp Obs")
+
+    if t_future:
+        raise NotImplementedError("Adding future observations times is not implemented yet.")
+    # if t_future:
+    #     for t_num, t_val in enumerate(t_future):
+    #         phi = ((t_val - params[4])/params[5] - 0.5) % 1 + 0.5
+    #         rv_star = RV_from_params(t_val, params, ignore_mean=False)
+    #         rv_planet = RV_from_params(t_val, params, ignore_mean=False, companion=True)
+    #         ax1.plot(phi, rv_star, "+", markersize=12, markeredgewidth=3)
+    #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
+
+    plt.legend(loc=0)
+    plt.show()
+    return 0
 
 if __name__ == '__main__':
     args = vars(_parser())
