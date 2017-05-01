@@ -240,7 +240,10 @@ def main(params, mode="phase", obs_times=None, obs_list=None):  # obs_times=None
                                                        parameters['msini'])
 
     if mode == "phase":
-        RV_phase_curve(parameters)
+        if obs_jd is None:
+            RV_phase_curve(parameters)
+        else:
+            RV_phase_curve(parameters, t_past=obs_jd)
     elif mode == "specdiff":
         differential_analysis(parameters, obs_jd)
     elif mode == "error":
@@ -369,10 +372,10 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
     params: dict
         Parameters of system.
     cycle_fraction: float
-        Fraction of phase space to plot. Default=1
+        Fraction of phase space to plot. (Default=1)
     ignore_mean: bool
-        Remove the contribution from the systems mean velocity.
-    #t_vals: float, array-like
+        Remove the contribution from the systems mean velocity. (Default=False)
+    t_past: float, array-like
         Times of past observations.
     t_future: float, array-like
         Times of future observations.
@@ -386,7 +389,6 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
     """
     phase = np.linspace(-0.5, 0.5, 100) * cycle_fraction
     t = params["tau"] + phase * params["period"]
-    # t = params[4] + phase * params[5]
 
     host_rvs = RV_from_params(t, params, ignore_mean=ignore_mean)
     companion_rvs = RV_from_params(t, params, ignore_mean=ignore_mean, companion=True)
@@ -407,14 +409,16 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
         plt.title("RV Phase Curve for {}".format(params['name'].upper()))
     else:
         plt.title("RV Phase Curve")
-    # if t_vals:
-    #    for t_num, t_val in enumerate(t_vals):
-    #         phi = ((t_val - params[4])/params[5] - 0.5) % 1 + 0.5
-    #         rv_star = RV_from_params(t_val, params, ignore_mean=False)
-    #         rv_planet = RV_from_params(t_val, params, ignore_mean=False, companion=True)
-    #         ax1.plot(phi, rv_star, ".", markersize=12, markeredgewidth=3)
-    #         ax2.plot(phi, rv_planet, ".", markersize=12, markeredgewidth=3)
+    if t_past:
+        for t_num, t_val in enumerate(t_past):
+            phi = ((t_val - params["tau"])/params["period"] + 0.5) % 1 - 0.5
+            rv_star = RV_from_params(t_val, params, ignore_mean=False)
+            rv_planet = RV_from_params(t_val, params, ignore_mean=False, companion=True)
+            ax1.plot(phi, rv_star, ".", markersize=10, markeredgewidth=2)
+            ax2.plot(phi, rv_planet, "+", markersize=10, markeredgewidth=2)
 
+    if t_future:
+        raise NotImplementedError("Adding future observations times is not implemented yet.")
     # if t_future:
     #     for t_num, t_val in enumerate(t_future):
     #         phi = ((t_val - params[4])/params[5] - 0.5) % 1 + 0.5
