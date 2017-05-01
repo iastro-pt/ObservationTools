@@ -9,7 +9,7 @@ Parameter file
 --------------
 ``rv.py`` requires a parameter file to specify the orbital parameters of the system you wish to analysis. A template is provided in ``data/template_params.txt``. Comment lines starting with ``#`` are ignored as well as ends of lines after a ``#``. For a basic rv calculation the standard rv parameters are required, ``k1``, ``omega``, ``eccentricity``, ``tau``, ``period``, as well as a ``name``.
 
-If the system rv offset ``mean_val`` (gamma) is not provided in the parameter file it is set to 0 km/s.
+If the system rv offset ``mean_val`` (usually gamma) is not provided in the parameter file it is set to 0 km/s.
 
 To include the rv of a companion the parameters m_star (star mass) and msini or m_true (companion mass) are required or ``k2`` the semi-major amplitude of the companion.
 If ``k2`` is not provided it is calculated from ``k1`` and the star and companion masses.
@@ -20,20 +20,33 @@ If ``k2`` is not provided it is calculated from ``k1`` and the star and companio
 
 Usage examples
 ==============
-Simple usage cases
+Simple usage cases:
 
 ::
 
     python rv.py data/HD30501_params.txt
 
-will display the phase curve of HD30501 and its companion from.
+.. image:: phase_curve.png
+    :height: 400 px
+    :width: 600 px
+    :scale: 90 %
+    :alt: Radial velocity phase curve.
+    :align: center
+
+displays the phase curve of HD30501 and its companion.
 
 ::
 
-    python rv.py data/HD30501_params.txt -l data/HD30501_obs.txt -m times
+    python rv.py data/HD30501_params.txt -l data/HD30501_obs.txt -m time
 
-Will create a temporal RV curve, marking the locations of the observations provided in the observation list.
+Will create a temporal RV curve, marking the locations of the observations provided in the observation list file.
 
+.. image:: time_curve.png
+   :height: 400 px
+   :width: 600 px
+   :scale: 90 %
+   :alt: Radial velocity curve, with observations indicated.
+   :align: center
 
 Modes
 ======
