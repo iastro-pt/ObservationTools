@@ -432,6 +432,11 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
     #         ax1.plot(phi, rv_star, "+", markersize=12, markeredgewidth=3)
     #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
 
+    # Include the mean_offset value.
+    print(params["mean_val"])
+    ax1.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
+    ax2.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
+
     plt.legend(loc=0)
     plt.show()
     return 0
@@ -528,9 +533,15 @@ def RV_time_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False
     #         ax1.plot(phi, rv_star, "+", markersize=12, markeredgewidth=3)
     #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
 
+    # Include the mean_offset value.
+    print(params["mean_val"])
+    ax1.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
+    ax2.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
+
     plt.legend(loc=0)
     plt.show()
     return 0
+
 
 if __name__ == '__main__':
     args = vars(_parser())
