@@ -156,17 +156,20 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
     params: dict
         Orbtial parameters required for RV.(mean_val, k1, omega, e, tau, period, optinal [k2]).
     ignore_mean: bool
-        Ignore the average radial velocity motion of the system
+        Ignore the average radial velocity motion of the system. Default=False.
     companion: bool
-        Calculate RV for companion instead.
+        Calculate RV for companion instead. Default=False. (k2 required)
 
-    Notes:
-    1) Omega should be given in degrees. This function converts it to radians.
-    2) The units of mean_val and k1,k2 should be the same e.g. both km/s
-
-    Returns:
+    Returns
+    -------
     rvs: array-like
         The radial velocity values evaluated at the provided times.
+
+    Notes
+    -----
+    1) Omega should be given in degrees. This function converts it to radians.
+    2) The units of mean_val and k1, k2 should be the same e.g. both km/s
+    3) Tau should be the julian date, and the period given in days.
 
     """
     if not isinstance(t, np.ndarray):
@@ -182,7 +185,7 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
 
     param_list[2] = np.deg2rad(param_list[2])   # convert omega to radians
 
-    if not ignore_mean:
+    if ignore_mean:
         # Set the mean rv veloctiy to zero
         param_list[0] = 0
 
