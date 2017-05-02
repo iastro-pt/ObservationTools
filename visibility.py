@@ -13,7 +13,7 @@ def _parser():
     parser.add_argument('targets', help='E.g. HD20010 or HD20010,HD41248', nargs='+')
     parser.add_argument('-d', '--date', default='today',
                         help='Date in format YYYY-MM-DD (or YYYY if starobs). Default is today.')
-    parser.add_argument('-s', '--site', default='esolasilla', 
+    parser.add_argument('-s', '--site', default='esolasilla',
                         help='Observatory. Default is ESO La Silla. '
                              'Common codes are esoparanal, lapalma, keck, lco, Palomar, etc')
     parser.add_argument('-c', default=False, action='store_true',
@@ -89,8 +89,8 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
     sun = ephem.Sun()
     for day in each_day:
       date_formatted = '/'.join([str(i) for i in pyasl.daycnv(day)[:-1]])
-      s = ephem.Observer(); 
-      s.date = date_formatted; 
+      s = ephem.Observer();
+      s.date = date_formatted;
       s.lat = ':'.join([str(i) for i in decdeg2dms(obs['latitude'])])
       s.lon = ':'.join([str(i) for i in decdeg2dms(obs['longitude'])])
       jds.append(ephem.julian_date(s.next_antitransit(sun)))
@@ -185,7 +185,7 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   ax.yaxis.set_minor_locator(MultipleLocator(5))
   yticks = ax.get_yticks()
   ytickformat = []
-  for t in range(yticks.size): 
+  for t in range(yticks.size):
     ytickformat.append(str(int(yticks[t]))+r"$^\circ$")
   ax.set_yticklabels(ytickformat, fontsize=16)
   ax.set_ylabel("Altitude", fontsize=18)
@@ -194,7 +194,7 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   yticksminor = yticksminor[ymind]
   ax.set_yticks(yticksminor, minor=True)
   m_ytickformat = []
-  for t in range(yticksminor.size): 
+  for t in range(yticksminor.size):
     m_ytickformat.append(str(int(yticksminor[t]))+r"$^\circ$")
   ax.set_yticklabels(m_ytickformat, minor=True)
   ax.set_ylim([0, 91])
@@ -412,10 +412,11 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
   ax22.spines['right'].set_position(('outward', 25))
   ax22.spines['right'].set_color('k')
   ax22.spines['right'].set_visible(True)
-  airmass2 = np.array(map(lambda ang: pyasl.airmass.airmassSpherical(90. - ang, obs['altitude']), airmass_ang))
+  airmass2 = list(map(lambda ang: pyasl.airmass.airmassSpherical(90. - ang, obs['altitude']), airmass_ang))
   ax22.set_yticks(airmass_ang)
   airmassformat = []
-  for t in range(airmass2.size): airmassformat.append("{0:2.2f}".format(airmass2[t]))
+  for t in airmass2:
+      airmassformat.append("{0:2.2f}".format(t))
   ax22.set_yticklabels(airmassformat, rotation=90)
   ax22.tick_params(axis="y", pad=10, labelsize=10)
   plt.text(1.045,-0.04, "Spherical+Alt", transform=ax.transAxes, ha='left', va='top', \
@@ -559,5 +560,3 @@ if __name__ == '__main__':
     VisibilityPlot(date=date, targets=targets, observatory=args.site)
   elif args.mode == 'starobs':
     StarObsPlot(year=date, targets=targets, observatory=args.site)
-
-
