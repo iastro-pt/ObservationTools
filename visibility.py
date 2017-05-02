@@ -356,7 +356,7 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
       else:
         ax.plot( jdsub[twi], altaz[0][twi], "-", color='#BEBEBE', linewidth=1.5)
 
-    ax.plot( jdsub[night], altaz[0][night], 'k', linewidth=1.5, label=plabel)
+    ax.plot( jdsub[night], altaz[0][night], '.k', label=plabel)
     ax.plot( jdsub[day], altaz[0][day], '.', color='#FDB813')
 
     altmax = np.argmax(altaz[0])
