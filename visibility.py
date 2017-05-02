@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 # from __future__ import print_function
+import sys
 import numpy as np
+import datetime as dt
+from dateutil import tz
 from PyAstronomy import pyasl
 from astropy.coordinates import SkyCoord
+from astropy.coordinates import name_resolve
 import ephem
-
 import argparse
 
 def _parser():
@@ -485,8 +488,6 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
 
 
 if __name__ == '__main__':
-  import sys
-  from astropy.coordinates import name_resolve
   args = _parser()
 
   target_names = args.targets[0].split(',')
@@ -517,10 +518,10 @@ if __name__ == '__main__':
   ## Actually calculate the visibility curves
   print('Calculating visibility for {0!s}'.format(args.targets[0]))
 
-  import datetime as dt
   if args.date == 'today':
     if args.mode == 'staralt':
-      date = dt.datetime.now()
+      today = dt.datetime.now() # now() gives the current time which we don't want
+      date = dt.datetime(today.year, today.month, today.day, tzinfo=tz.tzutc())
       print(date.date())
     elif args.mode == 'starobs':
       date = dt.datetime.now().year
