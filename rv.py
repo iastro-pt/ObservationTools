@@ -1,12 +1,3 @@
-
-
-def parse_list_string(string):
-    """Parse list of floats out of a string."""
-    string = string.replace("[", "").replace("]", "").strip()
-    list_str = string.split(",")
-    list_str = [float(val) for val in list_str]
-    return list_str
-
 """Radial Velocity calculations.
 
 Goals
@@ -164,6 +155,17 @@ def parse_paramfile(param_file: str, path: str=None) -> Dict:
                         parameters[par] = val
 
     return parameters
+
+
+def parse_list_string(string):
+    """Parse list of floats out of a string."""
+    string = string.replace("[", "").replace("]", "").strip()
+    list_str = string.split(",")
+    try:
+        return [float(val) for val in list_str]
+    except ValueError as e:
+        # Can't turn into floats.
+        return [val.strip() for val in list_str]
 
 
 def obs_time_jd(obs_times=None, obs_list=None):

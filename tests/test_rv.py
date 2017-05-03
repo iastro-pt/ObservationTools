@@ -26,6 +26,27 @@ def test_parse_params():
     assert isinstance(params["period"], float)
 
 
+@given(st.lists(st.floats(allow_nan=False), min_size=1))
+def test_parse_list_string(in_list):
+    """Test string of a list turned into list of the values.
+
+    Tranforms to floats if possible."""
+    str_list = str(in_list)
+    assert rv.parse_list_string(str_list) == in_list
+
+
+#@example(['source1', 'source2 et. al. 2017']) # not equal.
+#@example(in_list="source1, source2 et. al. 2017")
+def test_parse_list_string_with_strings():
+    """Test list parse with strings.
+
+    Triggers since they have a comma separator.
+    """
+    in_list="source1, source2 et. al. 2017"
+    str_list = str(in_list)
+    assert rv.parse_list_string(str_list) == ["source1", "source2 et. al. 2017"]
+
+
 def test_mid_min_max():
     """Test error bars get added correctly.
 
