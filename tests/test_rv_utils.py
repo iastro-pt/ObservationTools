@@ -77,8 +77,20 @@ def test_rv_curve():
 #     return rv
 
 
+@pytest.mark.parametrize("param_file", ["test/params.txt"])
+def parameter_fixture(param_file):
+    """Load Parameter file."""
+    return parse_paramfile(param_file)
+
+
 @pytest.mark.xfail
 def test_RV_from_params():
+    """Maximum RV should be within gamma+k1, gamma+k2."""
+
+    param_file = "test/params.txt"
+
+    # amp = gamma + K * sin()
+    RV_from_params()
     assert False
 # def RV_from_params(t, params, ignore_mean=False, companion=False):
 #     """Get radial velocity values at given times using the orbital parameters.

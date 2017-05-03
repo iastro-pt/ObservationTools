@@ -1,3 +1,12 @@
+
+
+def parse_list_string(string):
+    """Parse list of floats out of a string."""
+    string = string.replace("[", "").replace("]", "").strip()
+    list_str = string.split(",")
+    list_str = [float(val) for val in list_str]
+    return list_str
+
 """Radial Velocity calculations.
 
 Goals
@@ -155,14 +164,6 @@ def parse_paramfile(param_file: str, path: str=None) -> Dict:
                         parameters[par] = val
 
     return parameters
-
-
-def parse_list_string(string):
-    """Parse list of floats out of a string."""
-    string = string.replace("[", "").replace("]", "").strip()
-    list_str = string.split(",")
-    list_str = [float(val) for val in list_str]
-    return list_str
 
 
 def obs_time_jd(obs_times=None, obs_list=None):
@@ -486,7 +487,7 @@ def RV_time_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False
         obs_start = t_start
     # Specify 100 points per period
     num_cycles = ((t_start + params["period"]*cycle_fraction) - np.min([t_start, obs_start])) / params["period"]
-    num_points = np.ceil(100 * num_cycles)
+    num_points = np.ceil(500 * num_cycles)
     if num_points > 10000:
         debug(pv("num_points"))
         raise ValueError("num_points is to large")
@@ -538,6 +539,24 @@ def RV_time_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False
 
     # Include the mean_offset value.
     print(params["mean_val"])
+
+    # gamma = get_system_velocity()
+    gamma = params["mean_val"]
+    print("gamma value", gamma)
+
+    # K1, K2 = get_amplitudes()  # Get the two amplitude of the orbit
+    K1 = np.max(np.abs(host_rvs)) - gamma
+    k1 = abs(params["k1"])
+    print(K1, k1)
+    K2 = np.max(np.abs(companion_rvs)) - gamma
+    k2 = abs(params["k2"])
+
+    # Do the plotting part
+    # ax1.set_ylim(gamma - (K1 * 1.1), gamma + (K1 * 1.1))
+    # ax2.set_ylim(gamma - (K2 * 1.1), gamma + (K2 * 1.1))
+    ax1.set_ylim(gamma - (k1 * 1.4), gamma + (k1 * 1.4))
+    ax2.set_ylim(gamma - (k2 * 1.4), gamma + (k2 * 1.4))
+
     ax1.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
     ax2.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
 
