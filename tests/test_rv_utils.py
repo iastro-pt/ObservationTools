@@ -70,7 +70,7 @@ def test_radial_velocity():
 @pytest.mark.xfail
 def test_rv_curve():
     assert False
-#def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
+# def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
 #     ma = mean_anomaly(times, t0, period)
 #     ta = true_anomaly(ma, ecc)
 #     rv = radial_velocity(gamma, k, ta, omega, ecc)
@@ -83,18 +83,78 @@ def parameter_fixture(param_file):
     return parse_paramfile(param_file)
 
 
-@pytest.mark.xfail
-def test_RV_from_params():
-    """Maximum RV should be within gamma+k1, gamma+k2."""
-
-    param_file = "test/params.txt"
-
+# def test_RV_from_params(parameter_fixture):
+def test_RV_from_params_circular():
+    """Maximum RV should be within gamma+k1, gamma+k2 for a circular orbit."""
+    params = rv.parse_paramfile("tests/test_params.txt")
+    params["eccentricity"] = 0  # Circular orbit
+    time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
     # amp = gamma + K * sin()
-    RV_from_params()
-    assert False
-# def RV_from_params(t, params, ignore_mean=False, companion=False):
-#     """Get radial velocity values at given times using the orbital parameters.
-#     return rvs
+    rvs = RV_from_params(time, params)
+    min_val = params["mean_val"] - params["k1"]
+    max_val = params["mean_val"] + params["k1"]
+    assert np.all(rvs < max_val)
+    assert np.all(rvs > min_val)
+
+
+def test_RV_from_params():
+    """RV should be within theroretical limits."""
+    params = rv.parse_paramfile("tests/test_params.txt")
+    time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
+    rvs = RV_from_params(time, params) - params["mean_val"]  # remove center
+
+    A1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    B1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+
+    max_val = A1
+    min_val = -B1
+
+    max_rv = np.max(rvs)
+    min_rv = np.min(rvs)
+    print("max_val", max_val, "min_val", min_val)
+    print("max_rv", max_rv, "min_rv", min_rv)
+    assert np.all(rvs < max_val)
+    assert np.all(rvs > min_val)
+    if params["eccentricity"] == 0:
+        assert np.allclose(A1, B1)
+    else:
+        assert not np.allclose(A1, B1)
+    assert np.allclose(params["k1"], 0.5 * (A1 + B1))
+
+
+def test_RV_ignore_mean():
+    """Maximum RV should be within gamma+k1, gamma+k2 for a circular orbit."""
+    params = rv.parse_paramfile("tests/test_params.txt")
+    time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
+
+    assert np.allclose(RV_from_params(time, params, ignore_mean=True),
+                       RV_from_params(time, params, ignore_mean=False) - params["mean_val"])
+
+
+# @pytest.mark.xfail
+def test_from_params_companion():
+    """Maximum RV should be within gamma+k1, gamma+k2 for a circular orbit."""
+    params = rv.parse_paramfile("tests/test_params.txt")
+    time = np.linspace(params["tau"], params["tau"] + params["period"], 1000)
+    rvs = RV_from_params(time, params, ignore_mean=True, companion=True)
+
+    A2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    B2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+
+    max_val = -B2
+    min_val = A2
+
+    max_rv = np.max(rvs)
+    min_rv = np.min(rvs)
+    print("max_val", max_val, "min_val", min_val)
+    print("max_rv", max_rv, "min_rv", min_rv)
+    assert np.all(rvs < max_val)
+    assert np.all(rvs > min_val)
+    if params["eccentricity"] == 0:
+        assert np.allclose(A2, B2)
+    else:
+        assert not np.allclose(A2, B2)
+    assert np.allclose(params["k2"], 0.5 * (A2 + B2))
 
 
 @pytest.mark.parametrize("jd, expected", [
