@@ -77,16 +77,14 @@ def test_rv_curve():
 #     return rv
 
 
-@pytest.mark.parametrize("param_file", ["test/params.txt"])
-def parameter_fixture(param_file):
+@pytest.fixture(params=["tests/test_params.txt"])
+def params(request):
     """Load Parameter file."""
-    return parse_paramfile(param_file)
+    return rv.parse_paramfile(request.param)
 
 
-# def test_RV_from_params(parameter_fixture):
-def test_RV_from_params_circular():
+def test_RV_from_params_circular(params):
     """Maximum RV should be within gamma+k1, gamma+k2 for a circular orbit."""
-    params = rv.parse_paramfile("tests/test_params.txt")
     params["eccentricity"] = 0  # Circular orbit
     time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
     # amp = gamma + K * sin()
@@ -122,20 +120,17 @@ def test_RV_from_params():
     assert np.allclose(params["k1"], 0.5 * (A1 + B1))
 
 
-def test_RV_ignore_mean():
+def test_RV_ignore_mean(params):
     """Maximum RV should be within gamma+k1, gamma+k2 for a circular orbit."""
-    params = rv.parse_paramfile("tests/test_params.txt")
     time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
 
     assert np.allclose(RV_from_params(time, params, ignore_mean=True),
                        RV_from_params(time, params, ignore_mean=False) - params["mean_val"])
 
 
-# @pytest.mark.xfail
-def test_from_params_companion():
+def test_from_params_companion(params):
     """Maximum RV should be within gamma+k1, gamma+k2 for a circular orbit."""
-    params = rv.parse_paramfile("tests/test_params.txt")
-    time = np.linspace(params["tau"], params["tau"] + params["period"], 1000)
+    time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
     rvs = RV_from_params(time, params, ignore_mean=True, companion=True)
 
     A2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
