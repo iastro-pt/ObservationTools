@@ -3,11 +3,12 @@ import pytest
 import datetime
 import numpy as np
 from hypothesis import strategies as st
-from hypothesis import given, example, assume
+from hypothesis import given, example, assume, settings
 
+import rv
 from utils.rv_utils import mean_anomaly, true_anomaly
 from utils.rv_utils import jd2datetime, datetime2jd
-
+from utils.rv_utils import RV_from_params
 
 # issue with limits  0-pi only
 @given(st.lists(st.floats(min_value=0, max_value=np.pi), min_size=1), st.floats(min_value=0.05, max_value=0.99))
@@ -25,6 +26,7 @@ def test_trueanomaly(ma, ecc):
 
 
 # issue with limits 0-pi only
+@settings(max_examples=50)
 @given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0.01, max_value=0.99))
 @example(2, 0.5)   # example with an integer
 def test_trueanomaly_with_scalar(ma, ecc):
@@ -95,28 +97,34 @@ def test_RV_from_params_circular(params):
     assert np.all(rvs > min_val)
 
 
-def test_RV_from_params():
+# mean_val k1 period tau omega eccentricity
+@settings(max_examples=100)
+@given(st.floats(min_value=0, max_value=1e6, allow_nan=False, allow_infinity=False),
+       st.floats(min_value=0.1, max_value=1e5, allow_nan=False, allow_infinity=False),
+       st.floats(min_value=0.1, max_value=1e6, allow_nan=False, allow_infinity=False),
+       st.floats(min_value=0, max_value=360, allow_nan=False, allow_infinity=False),
+       st.floats(min_value=0, max_value=0.999, allow_nan=False, allow_infinity=False))
+def test_RV_from_params(k1, period, tau, omega, ecc):
     """RV should be within theroretical limits."""
-    params = rv.parse_paramfile("tests/test_params.txt")
+    params = {"mean_val": 0.0, "k1": k1, "period": period, "tau": tau, "omega": omega, "eccentricity": ecc}
+
     time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
     rvs = RV_from_params(time, params) - params["mean_val"]  # remove center
 
     A1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
     B1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-
-    max_val = A1
-    min_val = -B1
+    # Round to avoid floating point errors
+    rvs = np.around(rvs, decimals=8)
+    max_val = np.around(A1, decimals=8)
+    min_val = np.around(-B1, decimals=8)
 
     max_rv = np.max(rvs)
     min_rv = np.min(rvs)
-    print("max_val", max_val, "min_val", min_val)
-    print("max_rv", max_rv, "min_rv", min_rv)
-    assert np.all(rvs < max_val)
-    assert np.all(rvs > min_val)
-    if params["eccentricity"] == 0:
-        assert np.allclose(A1, B1)
-    else:
-        assert not np.allclose(A1, B1)
+
+    assert max_val >= max_rv
+    assert min_val <= min_rv
+    assert np.all(rvs <= max_val)
+    assert np.all(rvs >= min_val)
     assert np.allclose(params["k1"], 0.5 * (A1 + B1))
 
 
