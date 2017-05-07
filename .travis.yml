@@ -1,0 +1,40 @@
+# Travis CI setup
+
+language: python
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+# Setup anaconda
+before_install:
+  # http://conda.pydata.org/docs/travis.html
+  - sudo apt-get update
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+install:
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy astropy matplotlib
+  - source activate test-environment
+  - pip install pyastronomy
+  - python setup.py install
+  - pip install -r requirements.txt
+
+  # For tests
+  - pip install pytest coverage pytest-cov python-coveralls hypothesis
+
+# command to run tests
+script:
+  - pytest --cov=. --cov-report term-missing --durations 5 tests/
+
+after_success:
+  - coveralls
