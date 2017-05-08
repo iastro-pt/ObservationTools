@@ -438,8 +438,19 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
     #         ax1.plot(phi, rv_star, "+", markersize=12, markeredgewidth=3)
     #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
 
-    # Include the mean_offset value.
-    print(params["mean_val"])
+    # Determine rv max amplitudes.
+    A1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    B1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    amp1 = max([abs(A1), abs(B1)])
+
+    A2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    B2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    amp2 = max([abs(A2), abs(B2)])
+
+    # Adjust axis limits
+    ax1.set_ylim(params["mean_val"] - (amp1 * 1.1), params["mean_val"] + (amp1 * 1.1))
+    ax2.set_ylim(params["mean_val"] - (amp2 * 1.1), params["mean_val"] + (amp2 * 1.1))
+
     ax1.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
     ax2.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
 
@@ -539,25 +550,18 @@ def RV_time_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False
     #         ax1.plot(phi, rv_star, "+", markersize=12, markeredgewidth=3)
     #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
 
-    # Include the mean_offset value.
-    print(params["mean_val"])
+    # Determine rv max amplitudes.
+    A1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    B1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    amp1 = max([abs(A1), abs(B1)])
 
-    # gamma = get_system_velocity()
-    gamma = params["mean_val"]
-    print("gamma value", gamma)
+    A2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    B2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    amp2 = max([abs(A2), abs(B2)])
 
-    # K1, K2 = get_amplitudes()  # Get the two amplitude of the orbit
-    K1 = np.max(np.abs(host_rvs)) - gamma
-    k1 = abs(params["k1"])
-    print(K1, k1)
-    K2 = np.max(np.abs(companion_rvs)) - gamma
-    k2 = abs(params["k2"])
-
-    # Do the plotting part
-    # ax1.set_ylim(gamma - (K1 * 1.1), gamma + (K1 * 1.1))
-    # ax2.set_ylim(gamma - (K2 * 1.1), gamma + (K2 * 1.1))
-    ax1.set_ylim(gamma - (k1 * 1.4), gamma + (k1 * 1.4))
-    ax2.set_ylim(gamma - (k2 * 1.4), gamma + (k2 * 1.4))
+    # Adjust axis limits
+    ax1.set_ylim(params["mean_val"] - (amp1 * 1.1), params["mean_val"] + (amp1 * 1.1))
+    ax2.set_ylim(params["mean_val"] - (amp2 * 1.1), params["mean_val"] + (amp2 * 1.1))
 
     ax1.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
     ax2.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
