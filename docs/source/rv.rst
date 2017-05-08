@@ -9,7 +9,7 @@ Parameter file
 ==============
 ``rv.py`` requires a parameter file to specify the orbital parameters of the system you wish to analysis. A template is provided in ``data/template_params.txt`` to help you get started. Comment lines starting with ``#`` and in-line comments are ignored.
 
-For a basic rv calculation the standard rv parameters are required, ``k1`` [km/s], ``omega`` [deg], ``eccentricity``, ``tau`` [days], ``period`` [days], as well as the ``name`` parameter.
+For a basic rv calculations the standard rv parameters are required, ``k1`` [km/s], ``omega`` [deg], ``eccentricity``, ``tau`` [days], ``period`` [days], as well as the ``name`` parameter.
 
 If the mean system rv offset, ``mean_val`` (usually referred to as gamma), is not provided in the parameter file it is set to 0 km/s. The ``ignore_mean`` keyword in some functions can also be used to use a 0 km/s mean_val.
 
