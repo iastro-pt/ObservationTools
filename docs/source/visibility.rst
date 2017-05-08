@@ -5,7 +5,7 @@ Visibility
 The script ``visibility.py`` is used to plot the observability of objects to aid the planning of astronomical observations. It is inspired by `STARALT <http://catserver.ing.iac.es/staralt/>`_ and `PyAstronomy's Transit Visibility <http://www.hs.uni-hamburg.de/DE/Ins/Per/Czesla/PyA/PyA/pyaslDoc/aslDoc/transitVisibility.html>`_ tools.
 
 
-Modes:
+Modes
 ======
 Currently there are two user modes of visibility. ``staralt`` (default) and  ``starobs``. The usage of these is outlined in the following sections.
 
@@ -29,11 +29,11 @@ It is the default mode if no mode is specified. If the ``-d``, or ``--date`` is 
 
 The `observatory location <http://www.hs.uni-hamburg.de/DE/Ins/Per/Czesla/PyA/PyA/pyaslDoc/aslDoc/observatory.html>`_ can be specified using the ``-s`` or ``--site`` flag. The defualt observatory is ESO
 To find the list of available observatories and name codes run::
+
     from __future__ import print_function, division
     from PyAstronomy import pyasl
     # List all available observatory data
     pyasl.listObservatories()
-
 
 
 starobs
