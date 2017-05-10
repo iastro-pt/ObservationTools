@@ -78,7 +78,12 @@ def companion_amplitude(k_host: float, m_host: float, m_companion: float) -> flo
     return -k_host * m_host / m_companion
 
 
-def obs_time_jd(obs_times=None, obs_list=None):
+def strtimes2jd(obs_times):
+    """Convenience function for convert str times to jd."""
+    return [ephem.julian_date(t) for t in obs_times]
+
+
+def join_times(obs_times=None, obs_list=None):
     """Combine observation dates and turn to jd.
 
     Parameters
@@ -90,24 +95,23 @@ def obs_time_jd(obs_times=None, obs_list=None):
 
     Returns
     -------
-    Dates: list of floats
-        Combined dates converted to julian dates.
-    """
-    if (obs_list is None) and (obs_times is None):
-        return None
+    obs_times: list of str
+        Combined list of date strings.
 
-    if obs_list is not None:
-        obs_list_vals = parse_obslist(obs_list)
-        debug(pv("obs_list_vals"))
-        if obs_times is None:
-            obs_times = obs_list_vals
-        else:
-            obs_times = obs_times + obs_list_vals
+    """
+    if obs_times is None:
+        obs_times = []
+
+    if obs_list is None:
+        obs_list = []
+    else:
+        obs_list = parse_obslist(obs_list)
+
+    debug(pv("obs_list"))
+    obs_times = obs_times + obs_list
 
     debug(pv("obs_times"))
-    jds = [ephem.julian_date(t) for t in obs_times]
-    debug(pv("jds"))
-    return jds
+    return obs_times
 
 
 def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs_times=None, mode='phase', rv_diff=None
@@ -140,7 +144,8 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
         parameters["mean_val"] = 0.0
 
     # combine obs_times and obs_list and turn into jd.
-    obs_jd = obs_time_jd(obs_times, obs_list)
+    obs_times = join_times(obs_times, obs_list)
+    obs_jd = strtimes2jd(obs_times)
 
     # Calculate companion semi-major axis
     if mode in ("error", "indiv"):
