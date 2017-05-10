@@ -34,8 +34,19 @@ if __name__ == '__main__':
 
     target = args.object
     instrument = args.instrument
+
+    if instrument is None:
+        raise ValueError("Add an instrument to query.")
+    if target is False:
+        raise ValueError("Include a target to query.")
+
     table = eso.query_instrument(instrument, column_filters={'target': target})
-    table.pprint()
+
+    if table is None:
+        print("The query 'instrument={}, target={}'. Returned no results.".format(instrument, target))
+    else:
+        table.pprint()
+
 
     # data_files = eso.retrieve_data(table['DP.ID'])
     # print data_files
