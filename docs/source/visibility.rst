@@ -16,7 +16,7 @@ The ``staralt`` mode displays the altitude verse time of targets for a particula
 
 For example::
 
-    python visibility.py HD41248,HD219828 -s esolasilla -d 2016-04-04
+    python visibility.py HD41248,HD219828 -s esolasilla -d 2016-04-21
 
 Results in the following image.
 
@@ -42,8 +42,6 @@ The ``starobs`` mode shows how the altitude, at the *mid-dark time*, of each tar
 ::
 
     python visibility.py HD967,HD22879,HD40865 -m starobs
-
-**Draft image**
 
 .. image:: visibility_starobs.png
    :scale: 40 %
