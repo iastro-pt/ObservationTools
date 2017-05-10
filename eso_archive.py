@@ -12,10 +12,11 @@ def _parser():
     eso = Eso()
     instruments = eso.list_instruments()
     parser = argparse.ArgumentParser(description='Search and download from the ESO archive.')
-    parser.add_argument('username', help='ESO username')
+    parser.add_argument('-u', '--username', help='ESO username', default=False)
+    parser.add_argument('-d', '--download', help='Download data', default=False, action='store_true')
     parser.add_argument('--store_password', help='Store ESO password', default=False, action='store_true')
-    parser.add_argument('--object', help='Object, e.g. "Aldebaran"', default=False)
-    parser.add_argument('--instrument', help='ESO instruments', choices=instruments, type=str.lower)
+    parser.add_argument('-o', '--object', help='Object, e.g. "Aldebaran"', default=False)
+    parser.add_argument('-i', '--instrument', help='ESO instruments', choices=instruments, type=str.lower)
     return parser.parse_args()
 
 
@@ -23,7 +24,13 @@ if __name__ == '__main__':
     args = _parser()
     # Login
     eso = Eso()
-    eso.login(args.username, store_password=args.store_password)
+    username = args.username
+    if args.download and not username:
+        username = raw_input('Download requested, please provide ESO username: ')
+        try:
+            eso.login(username, store_password=args.store_password)
+        except:
+            raise SystemExit('Invalid username or password for ESO')
 
     target = args.object
     instrument = args.instrument
