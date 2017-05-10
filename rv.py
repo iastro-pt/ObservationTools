@@ -8,16 +8,17 @@ Plot radial velocity phase curves. Indicating obtained measurement locations.
 """
 import os
 import ephem
+import logging
 import argparse
 import numpy as np
-import logging
+import astropy.units as u
 from logging import debug
 from typing import Dict, List
 from datetime import datetime
 from astropy.constants import c
-import astropy.units as u
-from utils.rv_utils import RV_from_params
 from utils.rv_utils import jd2datetime
+from utils.rv_utils import RV_from_params
+from utils.parse import parse_obslist, parse_paramfile, parse_list_string
 # try:
 #     from ajplanet import pl_rv_array
 #     use_ajplanet = False
@@ -35,6 +36,7 @@ c_km_s = c.to(u.kilometer / u.second)  # Speed of light in km/s
 
 
 def _parser():
+    """RV Argparse parser."""
     parser = argparse.ArgumentParser(description='Radial velocity plotting')
     parser.add_argument('params', help='RV parameters filename', type=str)
     parser.add_argument('-d', '--date', default=None,
@@ -74,98 +76,6 @@ def companion_amplitude(k_host: float, m_host: float, m_companion: float) -> flo
     sun_jupiter_mass = 1047.56  # Solar mass in jupiter masses
     m_host *= sun_jupiter_mass  # Convert to jupiter mass
     return -k_host * m_host / m_companion
-
-
-def parse_obslist(fname: str, path: str=None) -> List[str]:
-    # Parse Obslist file containing list of dates/times
-    """Parse Obslist file containing list of dates/times.
-
-    Parameters
-    ----------
-    fname: str
-        Filename of obs_list file.
-    path: str [optional]
-        Path to directory of filename.
-
-    Returns
-    --------
-    times: list of strings
-        Observation times in a list.
-    """
-    if path is not None:
-        fname = os.path.join(path, fname)
-    if not os.path.exists(fname):
-        logging.warning("Obs_list file given does not exist. {}".format(fname))
-
-    obstimes = list()
-    with open(fname, 'r') as f:
-        for line in f:
-            if line.startswith("#"):
-                continue
-            else:
-                if "#" in line:   # Remove comment from end of line
-                    line = line.split("#")[0]
-                if "." in line:
-                    line = line.split(".")[0]   # remove fractions of seconds.
-                obstimes.append(line.strip())
-        debug(pv("obstimes"))
-    return obstimes
-
-
-def parse_paramfile(param_file: str, path: str=None) -> Dict:
-    """Extract orbit and stellar parameters from parameter file.
-
-    Parameters
-    ----------
-    param_file: str
-        Filename of parameter file.
-    path: str [optional]
-        Path to directory of filename.
-
-    Returns
-    --------
-    parameters: dict
-        Paramemters as a {param: value} dictionary.
-    """
-    if path is not None:
-        param_file = os.path.join(path, param_file)
-    parameters = dict()
-    if not os.path.exists(param_file):
-        logging.warning("Parameter file given does not exist. {}".format(param_file))
-
-    with open(param_file, 'r') as f:
-        for line in f:
-            if line.startswith("#"):
-                pass
-            else:
-                if '#' in line:   # Remove comment from end of line
-                    line = line.split("#")[0]
-                if line.endswith("="):
-                    logging.warning(("Parameter missing value in {}.\nLine = {line}."
-                                    " Value set to None.").format(param_file, line))
-                    line = line + " None"   # Add None value when parameter is missing
-                par, val = line.lower().split('=')
-                par, val = par.strip(), val.strip()
-                if (val.startswith("[") and val.endswith("]")) or ("," in val):  # Val is a list
-                    parameters[par] = parse_list_string(val)
-                else:
-                    try:
-                        parameters[par] = float(val)  # Turn parameters to floats if possible.
-                    except ValueError:
-                        parameters[par] = val
-
-    return parameters
-
-
-def parse_list_string(string):
-    """Parse list of floats out of a string."""
-    string = string.replace("[", "").replace("]", "").strip()
-    list_str = string.split(",")
-    try:
-        return [float(val) for val in list_str]
-    except ValueError as e:
-        # Can't turn into floats.
-        return [val.strip() for val in list_str]
 
 
 def obs_time_jd(obs_times=None, obs_list=None):
