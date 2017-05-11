@@ -22,7 +22,7 @@ config = {
         'tests': ['pytest', 'coverage', 'pytest-cov', 'python-coveralls', 'hypothesis'],
         'docs': ['sphinx >= 1.4'],
     },
-    'packages': [],
+    'packages': ["utils"],
     'package_data': {
         # Inlcude the data files:
         '': ['data/*']},
