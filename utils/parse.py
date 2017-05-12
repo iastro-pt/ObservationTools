@@ -1,12 +1,12 @@
 """Functions for parsing the parameter files."""
 import os
+import logging
 from utils.utils_debug import pv
-from logging import debug
-from typing import List, Dict
+from typing import List, Dict, Union
 
 
-def parse_obslist(fname: str, path: str=None) -> List[str]:
-    # Parse Obslist file containing list of dates/times
+def parse_obslist(fname, path=None):
+    # type: (str, str) -> List[str]
     """Parse Obslist file containing list of dates/times.
 
     Parameters
@@ -37,11 +37,12 @@ def parse_obslist(fname: str, path: str=None) -> List[str]:
                 if "." in line:
                     line = line.split(".")[0]   # remove fractions of seconds.
                 obstimes.append(line.strip())
-        debug(pv("obstimes"))
+        logging.debug(pv("obstimes"))
     return obstimes
 
 
-def parse_paramfile(param_file: str, path: str=None) -> Dict:
+def parse_paramfile(param_file, path=None):
+    # type: (str, str) -> Dict[str, Union[str, float]]
     """Extract orbit and stellar parameters from parameter file.
 
     Parameters
@@ -58,7 +59,7 @@ def parse_paramfile(param_file: str, path: str=None) -> Dict:
     """
     if path is not None:
         param_file = os.path.join(path, param_file)
-    parameters = dict()
+    parameters = dict()  # type: Dict[str, Union[str, float]]
     if not os.path.exists(param_file):
         logging.warning("Parameter file given does not exist. {}".format(param_file))
 
@@ -71,7 +72,7 @@ def parse_paramfile(param_file: str, path: str=None) -> Dict:
                     line = line.split("#")[0]
                 if line.endswith("="):
                     logging.warning(("Parameter missing value in {}.\nLine = {line}."
-                                    " Value set to None.").format(param_file, line))
+                                     " Value set to None.").format(param_file, line))
                     line = line + " None"   # Add None value when parameter is missing
                 par, val = line.lower().split('=')
                 par, val = par.strip(), val.strip()
@@ -87,6 +88,7 @@ def parse_paramfile(param_file: str, path: str=None) -> Dict:
 
 
 def parse_list_string(string):
+    # type: (str) -> List[Union[str, float]]
     """Parse list of floats out of a string."""
     string = string.replace("[", "").replace("]", "").strip()
     list_str = string.split(",")

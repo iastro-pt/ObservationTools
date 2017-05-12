@@ -1,9 +1,15 @@
-import numpy as np
 import datetime
+import numpy as np
+from typing import Any, Dict
+
+# TODO: Relpace "Any" with numpy type hint when available
+
+
 # #######################################################
 # Functions for RV calculations
 # #######################################################
 def true_anomaly(ma, ecc, niterationmax=10000):
+        # type: (Any, float, int) -> Any
     """Compute the true anomaly using the Newton-Raphson method.
 
     Parameters
@@ -60,6 +66,7 @@ def true_anomaly(ma, ecc, niterationmax=10000):
 
 
 def mean_anomaly(times, t0, period):
+    # type: (Any, float, float) -> Any
     """Calculate mean anomaly using period, tau and a time value.
 
     Parameters
@@ -85,6 +92,7 @@ def mean_anomaly(times, t0, period):
 
 
 def radial_velocity(gamma, k, ta, omega, ecc):
+    # type: (float, float, Any, float, float, float) -> Any
     """Radial velocity equation.
 
     Parameters
@@ -116,6 +124,7 @@ def radial_velocity(gamma, k, ta, omega, ecc):
 
 # RV calculation done in python (for when ajplanet is not available)
 def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
+    # type: (Any, float, float, float, float, float, float) -> Any
     """Generate values for Radial Velocity curve.
 
     Parameters
@@ -147,6 +156,7 @@ def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
 
 
 def RV_from_params(t, params, ignore_mean=False, companion=False):
+    # type: (Any, Dict[str, Union[str, float]], bool, bool) -> Any
     """Get radial velocity values at given times using the orbital parameters.
 
     Parameters
@@ -198,6 +208,7 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
 
 
 def jd2datetime(jd):
+    # type: (float) -> Any
     """Convert from a julian-date to a datetime object.
 
     Parameters
@@ -211,14 +222,15 @@ def jd2datetime(jd):
         Datetime of julian date.
 
     Inspiration from https://stackoverflow.com/questions/13943062/"""
-    JULIAN_EPOCH = datetime.datetime(2000, 1, 1, 12) # noon (the epoch name is unrelated)
-    J2000_JD = datetime.timedelta(2451545)           # julian epoch in julian dates
+    julian_epoch = datetime.datetime(2000, 1, 1, 12)  # noon (the epoch name is unrelated)
+    j2000_jd = datetime.timedelta(2451545)            # julian epoch in julian dates
 
-    dt = datetime.timedelta(jd) + JULIAN_EPOCH - J2000_JD
+    dt = datetime.timedelta(jd) + julian_epoch - j2000_jd
     return dt
 
 
 def datetime2jd(dt):
+    # type: (Any) -> float
     """Convert from a datetime to a jd object.
 
     Test against pyehem.julian_date()
@@ -230,10 +242,10 @@ def datetime2jd(dt):
 
     Inspiration from https://stackoverflow.com/questions/13943062/
     """
-    JULIAN_EPOCH = datetime.datetime(2000, 1, 1, 12) # noon (the epoch name is unrelated)
-    J2000_JD = datetime.timedelta(2451545)           # julian epoch in julian dates
+    julian_epoch = datetime.datetime(2000, 1, 1, 12)  # noon (the epoch name is unrelated)
+    j2000_jd = datetime.timedelta(2451545)            # julian epoch in julian dates
 
-    jd = dt - JULIAN_EPOCH + J2000_JD
+    jd = dt - julian_epoch + j2000_jd
 
     jd = jd.total_seconds() / (24 * 60 * 60)  # Turn timedelta into a float
     return jd

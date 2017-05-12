@@ -13,7 +13,7 @@ import argparse
 import numpy as np
 import astropy.units as u
 from logging import debug
-from typing import Dict, List
+from typing import Dict, List, Any, Union
 from datetime import datetime
 from astropy.constants import c
 from utils.rv_utils import jd2datetime
@@ -36,6 +36,7 @@ c_km_s = c.to(u.kilometer / u.second)  # Speed of light in km/s
 
 
 def _parser():
+    # type: () -> argparse.Namespace
     """RV Argparse parser."""
     parser = argparse.ArgumentParser(description='Radial velocity plotting')
     parser.add_argument('params', help='RV parameters filename', type=str)
@@ -55,7 +56,8 @@ def _parser():
     return parser.parse_args()
 
 
-def companion_amplitude(k_host: float, m_host: float, m_companion: float) -> float:
+def companion_amplitude(k_host, m_host, m_companion):
+    # type: (float, float, float) -> float
     """Calcualte the companion RV maximum amplitude.
 
     Parameters
@@ -79,11 +81,13 @@ def companion_amplitude(k_host: float, m_host: float, m_companion: float) -> flo
 
 
 def strtimes2jd(obs_times):
+    # type: (List[str]) -> List[float]
     """Convenience function for convert str times to jd."""
     return [ephem.julian_date(t) for t in obs_times]
 
 
 def join_times(obs_times=None, obs_list=None):
+    # type: (List[str], str) -> List[str]
     """Combine observation dates and turn to jd.
 
     Parameters
@@ -115,6 +119,7 @@ def join_times(obs_times=None, obs_list=None):
 
 
 def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs_times=None, mode='phase', rv_diff=None
+    # type: (Dict[str, Union[str, float]], str, List[str], str, str) -> None
     r"""Radial velocity displays.
 
     Parameters
@@ -263,7 +268,8 @@ def error_analysis(params=None, obs_times=None):
     return 0
 
 
-def min_mid_max(param: List[float]) -> List[float]:
+def min_mid_max(param):
+    # type: (List[float]) -> List[float]
     """Param with error bars.
 
     Asolute values taken incease of error in parameter 2.
@@ -290,7 +296,8 @@ def min_mid_max(param: List[float]) -> List[float]:
         return param
 
 
-def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False, t_past=False, t_future=False) -> int:
+def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False):
+    # type: (Dict[str, Union[str, float]], float, bool, Any, Any) -> int
     """Plot RV phase curve centered on zero.
 
     Parameters
@@ -337,7 +344,7 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
         plt.title("RV Phase Curve")
     if t_past:
         for t_num, t_val in enumerate(t_past):
-            phi = ((t_val - params["tau"])/params["period"] + 0.5) % 1 - 0.5
+            phi = ((t_val - params["tau"]) / params["period"] + 0.5) % 1 - 0.5
             rv_star = RV_from_params(t_val, params, ignore_mean=False)
             rv_planet = RV_from_params(t_val, params, ignore_mean=False, companion=True)
             ax1.plot(phi, rv_star, ".", markersize=10, markeredgewidth=2)
@@ -375,7 +382,8 @@ def RV_phase_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=Fals
 
 
 # Lots of duplication - could be improved
-def RV_time_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False, t_past=False, t_future=False, start_day=None) -> int:
+def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False, start_day=None):
+    # type: (Dict[str, Union[str, float]], float, bool, Any, Any, Any) -> int
     """Plot RV phase curve centered on zero.
 
     Parameters
@@ -414,13 +422,13 @@ def RV_time_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False
     else:
         obs_start = t_start
     # Specify 100 points per period
-    num_cycles = ((t_start + params["period"]*cycle_fraction) - np.min([t_start, obs_start])) / params["period"]
+    num_cycles = ((t_start + params["period"] * cycle_fraction) - np.min([t_start, obs_start])) / params["period"]
     num_points = np.ceil(500 * num_cycles)
     if num_points > 10000:
         debug(pv("num_points"))
         raise ValueError("num_points is to large")
 
-    t_space = np.linspace(min([t_start, obs_start]), t_start + params["period"]*cycle_fraction, num_points)
+    t_space = np.linspace(min([t_start, obs_start]), t_start + params["period"] * cycle_fraction, num_points)
 
     host_rvs = RV_from_params(t_space, params, ignore_mean=ignore_mean)
     companion_rvs = RV_from_params(t_space, params, ignore_mean=ignore_mean, companion=True)
@@ -449,7 +457,7 @@ def RV_time_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False
         plt.title("Radial Velocity Curve")
     if t_past is not None:
         t_past = np.asarray(t_past)
-        #for t_num, t_val in enumerate(t_past):
+        # for t_num, t_val in enumerate(t_past):
         rv_star = RV_from_params(t_past, params, ignore_mean=False)
         rv_planet = RV_from_params(t_past, params, ignore_mean=False, companion=True)
         ax1.plot(t_past - t_start, rv_star, ".", markersize=10, markeredgewidth=2, label="Host Obs")
@@ -488,11 +496,9 @@ def RV_time_curve(params: Dict, cycle_fraction: float=1, ignore_mean: bool=False
 
 if __name__ == '__main__':
     args = vars(_parser())
-    # star_name = args.pop('star_name')
     debug_on = args.pop('debug')
     opts = {k: args[k] for k in args}
 
-    # debug = args.pop('debug')
     if debug_on:
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s %(levelname)s %(message)s')

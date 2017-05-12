@@ -1,9 +1,13 @@
+"""Function for Debuging."""
 import inspect
 
+
 def pv(name):
-    # record=inspect.getouterframes(inspect.currentframe())[1]
-    # frame=record[0]
+    # type: (str) -> str
+    """Analysis an expresion 'expresion : evaulation'.
+
+    Used to help debuging values.
+    """
     frame = inspect.currentframe().f_back
     val = eval(name, frame.f_globals, frame.f_locals)
-    # print('{0}: {1}'.format(name, val))
     return '{0}: {1}'.format(name, val)
