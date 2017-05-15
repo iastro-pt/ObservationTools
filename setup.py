@@ -3,6 +3,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
+from setuptools import find_packages
 
 config = {
     'description': 'A set of tools to plan astronomical observations.',
@@ -22,7 +23,7 @@ config = {
         'tests': ['pytest', 'coverage', 'pytest-cov', 'python-coveralls', 'hypothesis'],
         'docs': ['sphinx >= 1.4'],
     },
-    'packages': ["utils"],
+    'packages': find_packages(exclude=['contrib', 'docs', 'tests', 'data']),
     'package_data': {
         # Inlcude the data files:
         '': ['data/*']},
