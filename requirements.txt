@@ -5,3 +5,4 @@ astropy
 # PyAstronomy
 argparse
 ephem
+typing

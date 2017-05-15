@@ -15,9 +15,9 @@ config = {
     'license': 'MIT',
     'setup_requires': ['pytest-runner'],
     'tests_require': ['pytest', 'hypothesis'],
-    # "PyAstronomy" when issue fixed.
-    'install_requires': ["numpy", "astropy", "scipy", "matplotlib",
-                         "astropy", "argparse", "ephem"],
+    # 'PyAstronomy' when issue fixed.
+    'install_requires': ['numpy', 'astropy', 'scipy', 'matplotlib',
+                         'astropy', 'argparse', 'ephem', 'typing'],
     'extras_require': {
         'dev': ['check-manifest'],
         'tests': ['pytest', 'coverage', 'pytest-cov', 'python-coveralls', 'hypothesis'],
@@ -27,10 +27,10 @@ config = {
     'package_data': {
         # Inlcude the data files:
         '': ['data/*']},
-    'scripts': ["visibility.py", "rv.py"],
+    'scripts': ['visibility.py', 'rv.py'],
     'name': 'ObservationTools',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    "classifiers": [
+    'classifiers': [
         # How mature is this project? Common values are
         #   3 - Alpha
         #   4 - Beta
@@ -46,7 +46,7 @@ config = {
         'Natural Language :: English',
     ],
     # What does your project relate to?
-    "keywords": ['Astronomy', 'Observation'],
+    'keywords': ['Astronomy', 'Observation'],
 }
 
 setup(**config)
