@@ -83,7 +83,11 @@ def companion_amplitude(k_host, m_host, m_companion):
 def strtimes2jd(obs_times):
     # type: (List[str]) -> List[float]
     """Convenience function for convert str times to jd."""
-    return [ephem.julian_date(t) for t in obs_times]
+    if obs_times is not None:
+        print("obs times", obs_times)
+        return [ephem.julian_date(t) for t in obs_times]
+    else:
+        return None
 
 
 def join_times(obs_times=None, obs_list=None):
@@ -115,7 +119,10 @@ def join_times(obs_times=None, obs_list=None):
     obs_times = obs_times + obs_list
 
     debug(pv("obs_times"))
-    return obs_times
+    if obs_times == []:
+        return None
+    else:
+        return obs_times
 
 
 def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs_times=None, mode='phase', rv_diff=None
@@ -149,6 +156,9 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
         parameters["mean_val"] = 0.0
 
     # combine obs_times and obs_list and turn into jd.
+    if (".txt" in obs_times) or (".dat" in obs_times):
+        raise ValueError("Filename given instead of a datete for obs_times.")
+
     obs_times = join_times(obs_times, obs_list)
     obs_jd = strtimes2jd(obs_times)
 
