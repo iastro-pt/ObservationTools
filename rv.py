@@ -18,7 +18,7 @@ from datetime import datetime
 from astropy.constants import c
 from utils.rv_utils import jd2datetime
 from utils.rv_utils import RV_from_params
-from utils.parse import parse_obslist, parse_paramfile, parse_list_string
+from utils.parse import parse_obslist, parse_paramfile
 # try:
 #     from ajplanet import pl_rv_array
 #     use_ajplanet = False
