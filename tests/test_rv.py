@@ -69,7 +69,7 @@ def test_mid_min_max():
 
 
 @pytest.mark.parametrize("times,obs_list,expected", [
-    (None, None, []),
+    (None, None, None),
     (None, "tests/test_obstimes.txt", ["2012-08-14 12:44:05", "2012-09-24 13:12:10"]),
     (["2017-05-01", "2015-01-02", "2016-04-05 12:34:15"], None, ["2017-05-01", "2015-01-02", "2016-04-05 12:34:15"]),
     (["2017-05-01", "2015-01-02", "2016-04-05 12:34:15"], "tests/test_obstimes.txt",
