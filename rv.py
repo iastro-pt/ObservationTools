@@ -156,8 +156,9 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
         parameters["mean_val"] = 0.0
 
     # combine obs_times and obs_list and turn into jd.
-    if (".txt" in obs_times) or (".dat" in obs_times):
-        raise ValueError("Filename given instead of a datete for obs_times.")
+    if obs_times:
+        if (".txt" in obs_times) or (".dat" in obs_times):
+            raise ValueError("Filename given instead of dates for obs_times.")
 
     obs_times = join_times(obs_times, obs_list)
     obs_jd = strtimes2jd(obs_times)
