@@ -29,7 +29,7 @@ def parse_obslist(fname, path=None):
     obstimes = list()
     with open(fname, 'r') as f:
         for line in f:
-            if line.startswith("#"):
+            if line.startswith("#") or line.isspace() or not line:    # Ignores comments and blank/empty lines.
                 continue
             else:
                 if "#" in line:   # Remove comment from end of line
