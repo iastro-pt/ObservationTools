@@ -65,7 +65,7 @@ def parse_paramfile(param_file, path=None):
 
     with open(param_file, 'r') as f:
         for line in f:
-            if line.startswith("#"):
+            if line.startswith("#") or line.isspace() or not line:    # Ignores comments and blank/empty lines.:
                 pass
             else:
                 if '#' in line:   # Remove comment from end of line
