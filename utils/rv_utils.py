@@ -195,6 +195,9 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
 
     param_list[2] = np.deg2rad(param_list[2])   # convert omega to radians
 
+    for param in param_list:
+        if isinstance(param, str):
+            raise TypeError("One of the params was not converted to float, {}. Check the parameter file.".format(param))
     if ignore_mean:
         # Set the mean rv veloctiy to zero
         param_list[0] = 0
