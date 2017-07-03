@@ -248,7 +248,10 @@ def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_
     ax2.set_ylabel("Companion RV (km/s)")
 
     if 'name' in params.keys():
-        plt.title("RV Phase Curve for {}".format(params['name'].upper()))
+        if "companion" in params.keys():
+            plt.title("RV Phase Curve for {} {}".format(params['name'].upper(), params['companion']))
+        else:
+            plt.title("RV Phase Curve for {}".format(params['name'].upper()))
     else:
         plt.title("RV Phase Curve")
     if t_past:
@@ -364,7 +367,10 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     ax2.set_ylabel("Companion RV (km/s)")
 
     if 'name' in params.keys():
-        plt.title("Radial Velocity Curve for {}".format(params['name'].upper()))
+        if "companion" in params.keys():
+            plt.title("Radial Velocity Curve for {} {}".format(params['name'].upper(), params['companion']))
+        else:
+            plt.title("Radial Velocity Curve for {}".format(params['name'].upper()))
     else:
         plt.title("Radial Velocity Curve")
     if t_past is not None:
