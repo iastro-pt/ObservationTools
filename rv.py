@@ -154,6 +154,9 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
     if "mean_val" not in parameters.keys():
         logging.info("mean_val parameter was not provided so set to 0 km/s")
         parameters["mean_val"] = 0.0
+    elif parameters["mean_val"] == "":
+        logging.info("mean_val parameter was blank so set to 0 km/s")
+        parameters["mean_val"] = 0.0
 
     # combine obs_times and obs_list and turn into jd.
     if obs_times:
