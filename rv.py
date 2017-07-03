@@ -142,7 +142,8 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
     date: str
         Reference date for some modes. Defaults=None)
     """
-    only_msini = True   # Use only the msini values not m_true.
+    # only_msini = True   # Use only the msini values not m_true.
+    only_msini = False
     # Load in params and store as a dictionary
     parameters = parse_paramfile(params)
 
@@ -175,13 +176,20 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
         else:
             if ('m_true' in parameters.keys()) and not only_msini:
                 # Use true mass if given
-                parameters['k2'] = companion_amplitude(parameters['k1'],
-                                                       parameters['m_star'],
-                                                       parameters['m_true'])
+                if not parameters["m_true"] == "":
+                    mass_used = parameters['m_true']
+                    true_mass_flag = True   # parameter to indicate if the true mass was used or not
+                else:
+                    mass_used = parameters["msini"]
+                    true_mass_flag = False
             else:
-                parameters['k2'] = companion_amplitude(parameters['k1'],
-                                                       parameters['m_star'],
-                                                       parameters['msini'])
+                mass_used = parameters["msini"]
+                true_mass_flag = False
+
+            parameters['k2'] = companion_amplitude(parameters['k1'],
+                                                   parameters['m_star'],
+                                                   mass_used)
+            parameters["true_mass_flag"] = true_mass_flag   # True if true mass used
 
     if mode == "phase":
             RV_phase_curve(parameters, t_past=obs_jd)
@@ -233,7 +241,10 @@ def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_
     ax1.set_ylabel("Host RV (km/s)")
 
     ax2 = ax1.twinx()
-    ax2.plot(phase, companion_rvs, '--', label="Companion", lw=2)
+    if params["true_mass_flag"]:
+        ax2.plot(phase, companion_rvs, '--', label="M_2 Companion", lw=2)
+    else:
+        ax2.plot(phase, companion_rvs, '--', label="M_2sini Companion", lw=2)
     ax2.set_ylabel("Companion RV (km/s)")
 
     if 'name' in params.keys():
@@ -346,7 +357,10 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     ax1.set_ylabel("Host RV (km/s)")
 
     ax2 = ax1.twinx()
-    ax2.plot(t_space - t_start, companion_rvs, '--', label="Companion", lw=2)
+    if params["true_mass_flag"]:
+        ax2.plot(t_space - t_start, companion_rvs, '--', label="M_2 Companion", lw=2)
+    else:
+        ax2.plot(t_space - t_start, companion_rvs, '--', label="M_2sini Companion", lw=2)
     ax2.set_ylabel("Companion RV (km/s)")
 
     if 'name' in params.keys():
