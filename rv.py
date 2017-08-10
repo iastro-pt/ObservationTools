@@ -55,14 +55,20 @@ def _parser():
     return parser.parse_args()
 
 
-def strtimes2jd(obs_times):
+def strtimes2rjd(obs_times):
     # type: (List[str]) -> List[float]
-    """Convenience function for convert str times to jd."""
+    """Convenience function for convert str times to reduced JD.
+
+    Reduced JD = JD-2400000
+    """
     if obs_times is not None:
         print("obs times", obs_times)
-        return [ephem.julian_date(t) for t in obs_times]
+        jds = [ephem.julian_date(t) - 2400000 for t in obs_times]
+        print("obs jd times", jds)
+        return jds
     else:
         return None
+
 
 
 def join_times(obs_times=None, obs_list=None):
@@ -140,7 +146,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
             raise ValueError("Filename given instead of dates for obs_times.")
 
     obs_times = join_times(obs_times, obs_list)
-    obs_jd = strtimes2jd(obs_times)
+    obs_jd = strtimes2rjd(obs_times)
 
     # Calculate companion semi-major axis
     if mode in ("error", "indiv"):
@@ -325,7 +331,7 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     ax1 = host_subplot(111)
     ax1.plot(t_space - t_start, host_rvs, label="Host", lw=2, color="k")
 
-    start_dt = jd2datetime(t_start)
+    start_dt = jd2datetime(t_start, reduced=True)
     if (start_dt.hour == 0) and (start_dt.minute == 0) and (start_dt.second == 0):
         start_string = datetime.strftime(start_dt, "%Y-%m-%d")
     else:

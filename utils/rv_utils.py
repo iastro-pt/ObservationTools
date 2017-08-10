@@ -234,7 +234,7 @@ def companion_amplitude(k_host, m_host, m_companion):
     return -k_host * m_host / m_companion
 
 
-def jd2datetime(jd):
+def jd2datetime(jd, reduced=False):
     # type: (float) -> Any
     """Convert from a julian-date to a datetime object.
 
@@ -242,13 +242,17 @@ def jd2datetime(jd):
     ----------
     jd: float
         Julian date to calculate datetime for.
+    reduced: bool
+        Is input jd in Reduced JD format, (JD-2400000)
 
     Returns
     -------
     dt: datetime object
         Datetime of julian date.
-
-    Inspiration from https://stackoverflow.com/questions/13943062/"""
+    Inspiration from https://stackoverflow.com/questions/13943062/
+    """
+    if reduced:
+        jd = jd + 2400000
     julian_epoch = datetime.datetime(2000, 1, 1, 12)  # noon (the epoch name is unrelated)
     j2000_jd = datetime.timedelta(2451545)            # julian epoch in julian dates
 
@@ -256,7 +260,7 @@ def jd2datetime(jd):
     return dt
 
 
-def datetime2jd(dt):
+def datetime2jd(dt, reduced=False):
     # type: (Any) -> float
     """Convert from a datetime to a jd object.
 
@@ -266,7 +270,13 @@ def datetime2jd(dt):
     ----------
     dt: datetime object
         Datetime for date to calcualte jd.
+    reduced: bool
+        Return reduced JD, (JD-2400000)
 
+    Returns
+    -------
+    jd: float
+        Julian date time
     Inspiration from https://stackoverflow.com/questions/13943062/
     """
     julian_epoch = datetime.datetime(2000, 1, 1, 12)  # noon (the epoch name is unrelated)
@@ -275,4 +285,6 @@ def datetime2jd(dt):
     jd = dt - julian_epoch + j2000_jd
 
     jd = jd.total_seconds() / (24 * 60 * 60)  # Turn timedelta into a float
+    if reduced:
+        jd = jd - 2400000
     return jd
