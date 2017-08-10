@@ -16,8 +16,7 @@ from logging import debug
 from typing import Dict, List, Any, Union
 from datetime import datetime
 from astropy.constants import c
-from utils.rv_utils import jd2datetime
-from utils.rv_utils import RV_from_params
+from utils.rv_utils import companion_amplitude, jd2datetime, RV_from_params
 from utils.parse import parse_obslist, parse_paramfile
 # try:
 #     from ajplanet import pl_rv_array
@@ -54,30 +53,6 @@ def _parser():
                         choices=['phase', 'time'], default='phase', type=str)
     parser.add_argument("--debug", help="Turning on debug output", action='store_true', default=False)
     return parser.parse_args()
-
-
-def companion_amplitude(k_host, m_host, m_companion):
-    # type: (float, float, float) -> float
-    """Calcualte the companion RV maximum amplitude.
-
-    Parameters
-    ----------
-    k_host: float
-        Amplitude of radial velocity variation of host.
-    m_host: float
-        Mass of host
-    m_companion: float
-        Mass of companion in consistent units.
-
-    Returns
-    -------
-    k_companion: float
-        RV amplitude of companion.
-
-    """
-    sun_jupiter_mass = 1047.56  # Solar mass in jupiter masses
-    m_host *= sun_jupiter_mass  # Convert to jupiter mass
-    return -k_host * m_host / m_companion
 
 
 def strtimes2jd(obs_times):
