@@ -55,15 +55,16 @@ def _parser():
     return parser.parse_args()
 
 
-def strtimes2rjd(obs_times):
+def strtimes2jd(obs_times, reduced=False):
     # type: (List[str]) -> List[float]
     """Convenience function for convert str times to reduced JD.
-
-    Reduced JD = JD-2400000
+    If reduced=True reutrns JD-2400000
     """
+    reduce_value = 2400000 if reduced else 0
+
     if obs_times is not None:
         print("obs times", obs_times)
-        jds = [ephem.julian_date(t) - 2400000 for t in obs_times]
+        jds = [ephem.julian_date(t) - reduce_value for t in obs_times]
         print("obs jd times", jds)
         return jds
     else:
@@ -146,7 +147,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
             raise ValueError("Filename given instead of dates for obs_times.")
 
     obs_times = join_times(obs_times, obs_list)
-    obs_jd = strtimes2rjd(obs_times)
+    obs_jd = strtimes2jd(obs_times, reduced=True)
 
     # Calculate companion semi-major axis
     if mode in ("error", "indiv"):

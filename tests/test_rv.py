@@ -87,4 +87,13 @@ def test_join_times(times, obs_list, expected):
     (["2012-08-14 12:44:05", "2012-09-24 13:12:10"], [2456154.030613426, 2456195.050115741]),
 ])
 def test_strtimes2jd(times, expected_jd):
-    assert rv.strtimes2jd(times) == expected_jd
+    assert np.allclose(rv.strtimes2jd(times, reduced=False), expected_jd)
+
+
+@pytest.mark.parametrize("times,expected_jd", [
+    ([], []),
+    (["2017-05-01", "2015-01-02", "2016-04-05 12:34:15"], [57874.5, 57024.5, 57484.023784722]),
+    (["2012-08-14 12:44:05", "2012-09-24 13:12:10"], [56154.030613426, 56195.050115741]),
+])
+def test_reduced_strtimes2jd(times, expected_jd):
+    assert np.allclose(rv.strtimes2jd(times, reduced=True), expected_jd)
