@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/iastro-pt/ObservationTools.svg?branch=master)](https://travis-ci.org/iastro-pt/ObservationTools)
-[![Documentation Status](https://readthedocs.org/projects/ia-observationtools/badge/?version=latest)](http://ia-observationtools.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/ia-observationtools/badge/?version=latest)](http://ia-observationtools.readthedocs.io/en/latest/?badge=latest)[![Updates](https://pyup.io/repos/github/iastro-pt/ObservationTools/shield.svg)](https://pyup.io/repos/github/iastro-pt/ObservationTools/)[![Python 3](https://pyup.io/repos/github/iastro-pt/ObservationTools/python-3-shield.svg)](https://pyup.io/repos/github/iastro-pt/ObservationTools/)
 
 # ObservationTools
 A set of tools to plan astronomical observations.
