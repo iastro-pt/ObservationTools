@@ -30,6 +30,9 @@ search: True
   #    # update insecure only, pin all
   #    update: insecure
   #    pin: True
+requirements:
+  - requirements/conda.txt:
+      pin: False
 
 # add a label to pull requests, default is not set
 # requires private repo permissions, even on public repos
