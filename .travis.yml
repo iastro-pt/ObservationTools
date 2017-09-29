@@ -24,19 +24,17 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
+
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy astropy matplotlib
-  - source activate test-environment
-  - pip install pyastronomy
+  - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION --file requirements/conda.txt
+  - source activate test-env
+  - pip install -r requirements/requirements.txt
+  - pip install -r requirements/test.txt
+
   - python setup.py install
-  - pip install -r requirements.txt
 
-  # For tests
-  - pip install pytest coverage pytest-cov python-coveralls hypothesis
-
-# command to run tests
 script:
   - pytest --cov=. --cov-report term-missing --durations 5 tests/
 
 after_success:
-  - coveralls
+  - coveralls -i
