@@ -15,7 +15,7 @@ branch: master
 # update schedule
 # default: empty
 # allowed: "every day", "every week", ..
-schedule: "every two months"
+schedule: "every month"
 
 # search for requirement files
 # default: True
@@ -31,6 +31,10 @@ search: True
   #    update: insecure
   #    pin: True
 requirements:
+  - requirements/requirements.txt:
+      pin: True
+  - requirements/test.txt:
+      pin: True
   - requirements/conda.txt:
       pin: False
 
