@@ -6,7 +6,7 @@ formats:
 
 # Requirements file
 requirements_file:
-    requirements.txt
+    requirements/requirements.txt
 
 python:
     version: 3.5
