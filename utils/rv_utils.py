@@ -4,16 +4,16 @@ from typing import Any, Dict
 
 from utils.parse import parse_paramfile
 
-# TODO: Relpace "Any" with numpy type hint when available
+# TODO: Replace "Any" with numpy type hint when available
 
 class RV(object):
     def __init__(self, params=None):
-          if isinstance(params, dict):
-              self.params_from_dict(params)
-          elif isinstance(params, str):
-              self.params_from_file(paramfile)
-          else:
-              self.params = {}
+        if isinstance(params, dict):
+            self.params_from_dict(params)
+        elif isinstance(params, str):
+            self.params_from_file(paramfile)
+        else:
+            self.params = {}
 
     def params_from_dict(self, params):
 
@@ -30,8 +30,8 @@ class RV(object):
         self.params_from_dict(param_dict)
 
     def rv_at_phase(self, phase):
-           t = phase * self.period + self.tau
-           return self.rv_at_times(t)
+        t = phase * self.period + self.tau
+        return self.rv_at_times(t)
 
     def rv_at_times(self, t):
         """Evaluate RV at the provided times."""

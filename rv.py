@@ -2,7 +2,7 @@
 
 Goals
 -----
-To calcualte when the radial velocity is different by a certian value.
+To calculate when the radial velocity is different by a certain value.
 Plot radial velocity phase curves. Indicating obtained measurement locations.
 
 """
@@ -40,7 +40,7 @@ def _parser():
     parser.add_argument('params', help='RV parameters filename', type=str)
     parser.add_argument('-d', '--date', default=None,
                         help='Reference date in format YYYY-MM-DD [HH:MM:SS]. Default=None uses time of now.')
-    # #  prediciting separated lines
+    # pre-predicting parated lines
     # parser.add_argument('-r', '--rv_diff', help='RV difference threshold to find')
     parser.add_argument('-o', '--obs_times', help='Times of previous observations YYYY-MM-DD format',
                         nargs='+', default=None)
@@ -57,7 +57,7 @@ def _parser():
 def strtimes2jd(obs_times, reduced=False):
     # type: (List[str]) -> List[float]
     """Convenience function for convert str times to reduced JD.
-    If reduced=True reutrns JD-2400000
+    If reduced=True returns JD-2400000
     """
     reduce_value = 2400000 if reduced else 0
 
@@ -99,8 +99,8 @@ def join_times(obs_times=None, obs_list=None):
     logging.debug(pv("obs_list"))
     obs_times = obs_times + obs_list
 
-    if obs_times == []:
     logging.debug(pv("obs_times"))
+    if not obs_times:  # An empty list is "Falsely"
         return None
     else:
         return obs_times
@@ -117,7 +117,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
     mode: str
         Mode for script to use. Phase, time, future.
     obs_times: list of str
-        Dates of observations added manually at comand line of format YYYY-MM-DD.
+        Dates of observations added manually at command line of format YYYY-MM-DD.
     obs_list: str
         Filename for list which contains obs_times (YYY-MM-DD HH:MM:SS).
     date: str
@@ -254,13 +254,13 @@ def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_
     #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
 
     # Determine rv max amplitudes.
-    A1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    B1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    amp1 = max([abs(A1), abs(B1)])
+    a_1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    b_1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    amp1 = max([abs(a_1), abs(b_1)])
 
-    A2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    B2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    amp2 = max([abs(A2), abs(B2)])
+    a_2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    b_2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    amp2 = max([abs(a_2), abs(b_2)])
 
     # Adjust axis limits
     ax1.set_ylim(params["mean_val"] - (amp1 * 1.1), params["mean_val"] + (amp1 * 1.1))
@@ -308,7 +308,7 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
         t_start = start_day
 
     # Make curve from start of t_past
-    if isinstance(t_past, (float)):
+    if isinstance(t_past, float):
         obs_start = t_past
     elif t_past is not None:
         obs_start = np.min(t_past)
@@ -373,13 +373,13 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
 
     # Determine rv max amplitudes.
-    A1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    B1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    amp1 = max([abs(A1), abs(B1)])
+    a_1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    b_1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    amp1 = max([abs(a_1), abs(b_1)])
 
-    A2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    B2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    amp2 = max([abs(A2), abs(B2)])
+    a_2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    b_2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    amp2 = max([abs(a_2), abs(b_2)])
 
     # Adjust axis limits
     ax1.set_ylim(params["mean_val"] - (amp1 * 1.1), params["mean_val"] + (amp1 * 1.1))
