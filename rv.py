@@ -12,7 +12,6 @@ import logging
 import argparse
 import numpy as np
 import astropy.units as u
-from logging import debug
 from typing import Dict, List, Any, Union
 from datetime import datetime
 from astropy.constants import c
@@ -97,11 +96,11 @@ def join_times(obs_times=None, obs_list=None):
     else:
         obs_list = parse_obslist(obs_list)
 
-    debug(pv("obs_list"))
+    logging.debug(pv("obs_list"))
     obs_times = obs_times + obs_list
 
-    debug(pv("obs_times"))
     if obs_times == []:
+    logging.debug(pv("obs_times"))
         return None
     else:
         return obs_times
@@ -319,7 +318,7 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     num_cycles = ((t_start + params["period"] * cycle_fraction) - np.min([t_start, obs_start])) / params["period"]
     num_points = np.ceil(500 * num_cycles)
     if num_points > 10000:
-        debug(pv("num_points"))
+        logging.debug(pv("num_points"))
         raise ValueError("num_points is to large")
 
     t_space = np.linspace(min([t_start, obs_start]), t_start + params["period"] * cycle_fraction, num_points)
@@ -396,10 +395,10 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
 
 if __name__ == '__main__':
     args = vars(_parser())
-    debug_on = args.pop('debug')
+    debug = args.pop('debug')
     opts = {k: args[k] for k in args}
 
-    if debug_on:
+    if debug:
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s %(levelname)s %(message)s')
     else:
