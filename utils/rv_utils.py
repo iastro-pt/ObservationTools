@@ -2,7 +2,58 @@ import datetime
 import numpy as np
 from typing import Any, Dict
 
+from utils.parse import parse_paramfile
+
 # TODO: Relpace "Any" with numpy type hint when available
+
+class RV(object):
+    def __init__(self, params=None):
+          if isinstance(params, dict):
+              self.params_from_dict(params)
+          elif isinstance(params, str):
+              self.params_from_file(paramfile)
+          else:
+              self.params = {}
+
+    def params_from_dict(self, params):
+
+        self.params = params
+        self.semi_amp = params["k1"]
+        self.period = params["period"]
+        self.ecc = params["eccentricity"]
+        self.tau = params["tau"]
+        self.mean_val = params["mean_val"]
+        self.omega = params["omega"]
+
+    def params_from_file(self, paramfile):
+        param_dict = parse_parameter_file(paramfile)
+        self.params_from_dict(param_dict)
+
+    def rv_at_phase(self, phase):
+           t = phase * self.period + self.tau
+           return self.rv_at_times(t)
+
+    def rv_at_times(self, t):
+        """Evaluate RV at the provided times."""
+        return radial_velocity(self.params["gamma"], self.semi_amp,
+                               self.true_anomaly(t), self.omega,
+                               self.ecc )
+
+    def rv_full_phase(self, points=100):
+        """Return RV curve evaluated one full phase."""
+        phase = np.linspace(0, 2*np.pi, points)
+        times = phase * self.params["period"] + self.params["t0"]
+        return self.rv_at_times(times)
+
+    @staticmethod
+    def radial_velocity(gamma, k, ta, omega, ecc):
+        return gamma + k * (np.cos(ta + omega) + ecc * np.cos(omega))
+
+    def mean_anomaly(self, times):
+        return mean_anomaly(times, self.params["t0"], self.params["period"])
+
+    def true_anomaly(self, times):
+        return true_anomaly(self.mean_anomaly(times), self.params["ecc"])
 
 
 # #######################################################
