@@ -1,36 +1,46 @@
 import datetime
 import numpy as np
 from typing import Any, Dict
+from utils.parse import parse_paramfile
+
 
 from utils.parse import parse_paramfile
 
 # TODO: Replace "Any" with numpy type hint when available
 
+
 class RV(object):
-    def __init__(self, params=None):
-        if isinstance(params, dict):
-            self.params_from_dict(params)
-        elif isinstance(params, str):
-            self.params_from_file(paramfile)
-        else:
-            self.params = {}
+    def __init__(self, semi_amp=0.0, period=0.0, ecc =0.0,
+                 tau=0.0, gamma=0.0, omega=0.0, **other_params):
+        self.semi_amp = semi_amp
+        self.period = period
+        self.ecc = ecc
+        self.tau = tau
+        self.gamma = gamma
+        self.omega = omega
+        self.params = self.param_dict()
 
-    def params_from_dict(self, params):
+        if other_params is not None:
+            self.params.update(other_params)
 
-        self.params = params
-        self.semi_amp = params["k1"]
-        self.period = params["period"]
-        self.ecc = params["eccentricity"]
-        self.tau = params["tau"]
-        self.mean_val = params["mean_val"]
-        self.omega = params["omega"]
     def __repr__(self):
         return "RV(semi_amp={1}, period={2}, ecc={3}, tau={4}, omega={5}, gamma={6}, params={7})".format(
             self.__class__, self.semi_amp, self.period, self.ecc, self.tau, self.omega, self.gamma, self.params)
 
-    def params_from_file(self, paramfile):
-        param_dict = parse_parameter_file(paramfile)
-        self.params_from_dict(param_dict)
+    def param_dict(self):
+        return {"k1": self.semi_amp, "period": self.period, "eccentricity": self.ecc,
+                "tau": self.tau, "mean_val": self.gamma, "omega": self.omega}
+
+    @classmethod
+    def from_dict(self, params):
+        return RV(semi_amp=params["k1"], period=params["period"], ecc=params["eccentricity"],
+                  tau=params["tau"], gamma=params["mean_val"], omega=params["omega"], other_params=params)
+
+    @classmethod
+    def from_file(self, filename):
+        """Parameters in key = val\n text file."""
+        param_dict = parse_paramfile(filename)
+        self.from_dict(param_dict)
 
     def rv_at_phase(self, phase):
         t = phase * self.period + self.tau
