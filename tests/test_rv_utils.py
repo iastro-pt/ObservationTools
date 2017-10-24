@@ -87,10 +87,9 @@ def params(request):
 
 
 def test_RV_from_params_circular(params):
-    """Maximum RV should be within gamma+k1, gamma+k2 for a circular orbit."""
+    """Maximum RV should be within gamma + k1, gamma + k2 for a circular orbit."""
     params["eccentricity"] = 0  # Circular orbit
     time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
-    # amp = gamma + K * sin()
     rvs = RV_from_params(time, params)
     min_val = params["mean_val"] - params["k1"]
     max_val = params["mean_val"] + params["k1"]
@@ -106,18 +105,18 @@ def test_RV_from_params_circular(params):
        st.floats(min_value=0, max_value=360, allow_nan=False, allow_infinity=False),
        st.floats(min_value=0, max_value=0.999, allow_nan=False, allow_infinity=False))
 def test_RV_from_params(k1, period, tau, omega, ecc):
-    """RV should be within theroretical limits."""
+    """RV should be within theoretical limits."""
     params = {"mean_val": 0.0, "k1": k1, "period": period, "tau": tau, "omega": omega, "eccentricity": ecc}
 
     time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
     rvs = RV_from_params(time, params) - params["mean_val"]  # remove center
 
-    A1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    B1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    a_1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    b_1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
     # Round to avoid floating point errors
     rvs = np.around(rvs, decimals=8)
-    max_val = np.around(A1, decimals=8)
-    min_val = np.around(-B1, decimals=8)
+    max_val = np.around(a_1, decimals=8)
+    min_val = np.around(-b_1, decimals=8)
 
     max_rv = np.max(rvs)
     min_rv = np.min(rvs)
@@ -126,7 +125,7 @@ def test_RV_from_params(k1, period, tau, omega, ecc):
     assert min_val <= min_rv
     assert np.all(rvs <= max_val)
     assert np.all(rvs >= min_val)
-    assert np.allclose(params["k1"], 0.5 * (A1 + B1))
+    assert np.allclose(params["k1"], 0.5 * (a_1 + b_1))
 
 
 def test_RV_ignore_mean(params):
@@ -142,11 +141,11 @@ def test_from_params_companion(params):
     time = np.linspace(params["tau"], params["tau"] + params["period"], 200)
     rvs = RV_from_params(time, params, ignore_mean=True, companion=True)
 
-    A2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    B2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    a_2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
+    b_2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
 
-    max_val = -B2
-    min_val = A2
+    max_val = -b_2
+    min_val = a_2
 
     max_rv = np.max(rvs)
     min_rv = np.min(rvs)
@@ -155,10 +154,10 @@ def test_from_params_companion(params):
     assert np.all(rvs < max_val)
     assert np.all(rvs > min_val)
     if params["eccentricity"] == 0:
-        assert np.allclose(A2, B2)
+        assert np.allclose(a_2, b_2)
     else:
-        assert not np.allclose(A2, B2)
-    assert np.allclose(params["k2"], 0.5 * (A2 + B2))
+        assert not np.allclose(a_2, b_2)
+    assert np.allclose(params["k2"], 0.5 * (a_2 + b_2))
 
 
 @pytest.mark.parametrize("jd, expected", [
@@ -178,8 +177,8 @@ def test_datetime2jd(date, expected):
 
 
 @given(st.floats(min_value=2200000, max_value=2600000))
-def test_jdconversions(jd):
-    """Test jd2datetime and datetime2jd are reversable"""
+def test_jd_conversions(jd):
+    """Test jd2datetime and datetime2jd are reversible"""
 
     assert np.allclose(datetime2jd(jd2datetime(jd)), jd)
     assert np.allclose(ephem.julian_date(jd2datetime(jd)), datetime2jd(jd2datetime(jd)))

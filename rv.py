@@ -70,7 +70,6 @@ def strtimes2jd(obs_times, reduced=False):
         return None
 
 
-
 def join_times(obs_times=None, obs_list=None):
     # type: (List[str], str) -> List[str]
     """Combine observation dates and turn to jd.

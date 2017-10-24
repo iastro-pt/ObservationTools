@@ -29,7 +29,7 @@ def test_parse_params():
 def test_parse_list_string(in_list):
     """Test string of a list turned into list of the values.
 
-    Tranforms to floats if possible."""
+    Transforms to floats if possible."""
     str_list = str(in_list)
     assert parse.parse_list_string(str_list) == in_list
 
@@ -50,7 +50,7 @@ def test_parse_list_string_with_strings():
 def test_mid_min_max():
     """Test error bars get added correctly.
 
-     For parsing paramerers with errorbars."""
+     For parsing parameters with error bars."""
     param_1 = [10, -5, 2.5]
     assert np.allclose(rv.min_mid_max(param_1), [5, 10, 12.5])
     param_2 = [5.1, 2]

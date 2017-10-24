@@ -183,7 +183,7 @@ def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
 
     Parameters
     times: array-like, float
-        Times to calcualte radial velocity values(Julian days))
+        Times to calculate radial velocity values(Julian days))
     gamma: float
         Mean RV offset value.
     k: float
@@ -200,7 +200,7 @@ def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
     Returns
     -------
     rv: array-like
-        Radial velocity values evaulated at the given times.
+        Radial velocity values evaluated at the given times.
 
     """
     ma = RV.mean_anomaly(times, t0, period)
@@ -218,7 +218,7 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
     t: array-like
         The times at which to calculate the RV.
     params: dict
-        Orbtial parameters required for RV.(mean_val, k1, omega, e, tau, period, optinal [k2]).
+        Orbital parameters required for RV.(mean_val, k1, omega, e, tau, period, optimal [k2]).
     ignore_mean: bool
         Ignore the average radial velocity motion of the system. Default=False.
     companion: bool
@@ -239,7 +239,7 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
     if not isinstance(t, np.ndarray):
         t = np.array(t)
 
-    # Select needed entries from dict to calcualte rv
+    # Select needed entries from dict to calculate rv
     if companion:
         param_list = [params["mean_val"], params["k2"], params["omega"],
                       params["eccentricity"], params["tau"], params["period"]]
@@ -253,7 +253,7 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
         if isinstance(param, str):
             raise TypeError("One of the params was not converted to float, {}. Check the parameter file.".format(param))
     if ignore_mean:
-        # Set the mean rv veloctiy to zero
+        # Set the mean rv to zero
         param_list[0] = 0
 
     # if use_ajplanet:   # Use ajplanet if available
@@ -266,7 +266,7 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
 
 def companion_amplitude(k_host, m_host, m_companion):
     # type: (float, float, float) -> float
-    """Calcualte the companion RV maximum amplitude.
+    """Calculate the companion RV maximum amplitude.
 
     Parameters
     ----------
@@ -323,7 +323,7 @@ def datetime2jd(dt, reduced=False):
     Parameters
     ----------
     dt: datetime object
-        Datetime for date to calcualte jd.
+        Datetime for date to calculate jd.
     reduced: bool
         Return reduced JD, (JD-2400000)
 
