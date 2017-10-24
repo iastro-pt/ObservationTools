@@ -32,15 +32,15 @@ class RV(object):
                 "tau": self.tau, "mean_val": self.gamma, "omega": self.omega}
 
     @classmethod
-    def from_dict(self, params):
-        return RV(semi_amp=params["k1"], period=params["period"], ecc=params["eccentricity"],
+    def from_dict(cls, params):
+        return cls(semi_amp=params["k1"], period=params["period"], ecc=params["eccentricity"],
                   tau=params["tau"], gamma=params["mean_val"], omega=params["omega"], other_params=params)
 
     @classmethod
-    def from_file(self, filename):
+    def from_file(cls, filename):
         """Parameters in key = val\n text file."""
         param_dict = parse_paramfile(filename)
-        self.from_dict(param_dict)
+        return cls.from_dict(param_dict)
 
     def rv_at_phase(self, phase):
         t = phase * self.period + self.tau
