@@ -48,9 +48,9 @@ class RV(object):
 
     def rv_at_times(self, t):
         """Evaluate RV at the provided times."""
-        return radial_velocity(self.params["gamma"], self.semi_amp,
-                               self.true_anomaly(t), self.omega,
-                               self.ecc )
+        true_anomaly = self.true_anomaly(self.mean_anomaly(t, self.tau, self.period))
+        return self.radial_velocity(self.gamma, self.semi_amp,
+                                    true_anomaly, self.omega, self.ecc )
 
     def rv_full_phase(self, points=100):
         """Return RV curve evaluated one full phase."""
@@ -58,132 +58,122 @@ class RV(object):
         times = phase * self.params["period"] + self.params["t0"]
         return self.rv_at_times(times)
 
+    # #######################################################
+    # Functions for RV calculations
+    # #######################################################
+    @staticmethod
+    def true_anomaly(ma, ecc, niterationmax=10000):
+        # type: (Any, float, int) -> Any
+        """Compute the true anomaly using the Newton-Raphson method.
+
+        Parameters
+        ----------
+        ma: array-like
+            Mean anomaly.
+        ecc: float
+            Orbital eccentricity.
+        niterationmax: int
+            Maximum number of iterations for N-R method.
+
+        Returns
+        -------
+        ta: array-like
+            True anomaly
+
+        Notes
+        -----
+        Adapted from Rodrigo Diaz.
+
+        """
+        if not isinstance(ma, (int, float)):
+            ea = ma
+        else:
+            ea = np.array([ma, ])
+
+        if isinstance(ea, list):
+            raise TypeError("Unsupported type 'list', input a numpy array or an int/float.")
+        if len(ea) == 0:
+            raise ValueError("A empty array was given.")
+
+        # Initialise at ea0 = ma
+        niteration = 0
+        ea0 = ma
+
+        while np.linalg.norm(ea - ea0, ord=1) > 1e-5 or niteration == 0:
+            ea0 = ea
+
+            ff = ea - ecc * np.sin(ea) - ma   # Function
+            dff = 1 - ecc * np.cos(ea)        # Derivative
+
+            # Use Newton method
+            ea = ea0 - ff / dff
+
+            # Increase iteration number; if above limit, break with exception.
+            niteration += 1
+            if niteration >= niterationmax:
+                raise RuntimeError('Eccentric anomaly computation'
+                                   'not converged.')
+
+        # Compute true anomaly from eccentric anomaly
+        return 2. * np.arctan2(np.sqrt(1. + ecc) * np.sin(ea / 2.),
+                               np.sqrt(1. - ecc) * np.cos(ea / 2.))
+
+    @staticmethod
+    def mean_anomaly(times, t0, period):
+        # type: (Any, float, float) -> Any
+        """Calculate mean anomaly using period, tau and a time value.
+
+        Parameters
+        ----------
+        times: array-like
+            Times to compute mean anomaly.
+        t0: float
+            Time of periastron passage. (Julian days)
+        period: float
+            Period of orbit.
+
+        Returns
+        -------
+        ma: array-like
+            Mean anomaly.
+
+        """
+        if not isinstance(times, (int, float)):
+            times = times
+        else:
+            times = np.array(times)
+        return 2 * np.pi * (times - t0) / period
+
     @staticmethod
     def radial_velocity(gamma, k, ta, omega, ecc):
+        # type: (float, float, Any, float, float, float) -> Any
+        """Radial velocity equation.
+
+        Parameters
+        ----------
+        gamma: float
+            Mean RV motion of system.
+        k: float
+            RV amplitude.
+        ta: array-like, float
+            True anomaly.
+        omega: float
+            Argument of periastron. (radians)
+        ecc: float
+            Eccentricity of orbit.
+
+        Returns
+        -------
+        RV: array-like, float
+            Radial velocity values
+
+        Notes
+        -----
+        RV = gamma + k *(np.cos(ta + omega) + ecc * np.cos(omega)).
+
+        """
+        # Calculate radial velocity of star
         return gamma + k * (np.cos(ta + omega) + ecc * np.cos(omega))
-
-    def mean_anomaly(self, times):
-        return mean_anomaly(times, self.params["t0"], self.params["period"])
-
-    def true_anomaly(self, times):
-        return true_anomaly(self.mean_anomaly(times), self.params["ecc"])
-
-
-# #######################################################
-# Functions for RV calculations
-# #######################################################
-def true_anomaly(ma, ecc, niterationmax=10000):
-        # type: (Any, float, int) -> Any
-    """Compute the true anomaly using the Newton-Raphson method.
-
-    Parameters
-    ----------
-    ma: array-like
-        Mean anomaly.
-    ecc: float
-        Orbital eccentricity.
-    niterationmax: int
-        Maximum number of iterations for N-R method.
-
-    Returns
-    -------
-    ta: array-like
-        True anomaly
-
-    Notes
-    -----
-    Adapted from Rodrigo Diaz.
-
-    """
-    if not isinstance(ma, (int, float)):
-        ea = ma
-    else:
-        ea = np.array([ma, ])
-
-    if isinstance(ea, list):
-        raise TypeError("Unsupported type 'list', input a numpy array or an int/float.")
-    if len(ea) == 0:
-        raise ValueError("A empty array was given.")
-
-    # Initialise at ea0 = ma
-    niteration = 0
-    ea0 = ma
-
-    while np.linalg.norm(ea - ea0, ord=1) > 1e-5 or niteration == 0:
-        ea0 = ea
-
-        ff = ea - ecc * np.sin(ea) - ma   # Function
-        dff = 1 - ecc * np.cos(ea)        # Derivative
-
-        # Use Newton method
-        ea = ea0 - ff / dff
-
-        # Increase iteration number; if above limit, break with exception.
-        niteration += 1
-        if niteration >= niterationmax:
-            raise RuntimeError('Eccentric anomaly computation'
-                               'not converged.')
-
-    # Compute true anomaly from eccentric anomaly
-    return 2. * np.arctan2(np.sqrt(1. + ecc) * np.sin(ea / 2.),
-                           np.sqrt(1. - ecc) * np.cos(ea / 2.))
-
-
-def mean_anomaly(times, t0, period):
-    # type: (Any, float, float) -> Any
-    """Calculate mean anomaly using period, tau and a time value.
-
-    Parameters
-    ----------
-    times: array-like
-        Times to compute mean anomaly.
-    t0: float
-        Time of periastron passage. (Julian days)
-    period: float
-        Period of orbit.
-
-    Returns
-    -------
-    ma: array-like
-        Mean anomaly.
-
-    """
-    if not isinstance(times, (int, float)):
-        times = times
-    else:
-        times = np.array(times)
-    return 2 * np.pi * (times - t0) / period
-
-
-def radial_velocity(gamma, k, ta, omega, ecc):
-    # type: (float, float, Any, float, float, float) -> Any
-    """Radial velocity equation.
-
-    Parameters
-    ----------
-    gamma: float
-        Mean RV motion of system.
-    k: float
-        RV amplitude.
-    ta: array-like, float
-        True anomaly.
-    omega: float
-        Argument of periastron. (radians)
-    ecc: float
-        Eccentricity of orbit.
-
-    Returns
-    -------
-    RV: array-like, float
-        Radial veloctity values
-
-    Notes
-    -----
-    RV = gamma + k *(np.cos(ta + omega) + ecc * np.cos(omega)).
-
-    """
-    # Calculate radial velocity of star
-    return gamma + k * (np.cos(ta + omega) + ecc * np.cos(omega))
 
 
 # RV calculation done in python (for when ajplanet is not available)
@@ -213,9 +203,9 @@ def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
         Radial velocity values evaulated at the given times.
 
     """
-    ma = mean_anomaly(times, t0, period)
-    ta = true_anomaly(ma, ecc)
-    rv = radial_velocity(gamma, k, ta, omega, ecc)
+    ma = RV.mean_anomaly(times, t0, period)
+    ta = RV.true_anomaly(ma, ecc)
+    rv = RV.radial_velocity(gamma, k, ta, omega, ecc)
     return rv
 
 

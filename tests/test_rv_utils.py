@@ -6,17 +6,18 @@ from hypothesis import strategies as st
 from hypothesis import given, example, assume, settings
 
 import rv
-from utils.rv_utils import mean_anomaly, true_anomaly
+from utils.rv_utils import RV
 from utils.rv_utils import jd2datetime, datetime2jd
 from utils.rv_utils import RV_from_params
 
+
 # issue with limits  0-pi only
 @given(st.lists(st.floats(min_value=0, max_value=np.pi), min_size=1), st.floats(min_value=0.05, max_value=0.99))
-def test_trueanomaly(ma, ecc):
+def test_true_anomaly(ma, ecc):
 
     ma = np.asarray(ma)
     assume(np.all(np.abs(ma) > 0.0001))
-    ta = true_anomaly(ma, ecc)
+    ta = RV.true_anomaly(ma, ecc)
     # cos(E) = (e + cos(ta)) / (1 + e*cos(ta))
     E = np.arccos((ecc + np.cos(ta)) /(1 + ecc * np.cos(ta)))
     # ma = E - e*sin(E)
@@ -29,9 +30,9 @@ def test_trueanomaly(ma, ecc):
 @settings(max_examples=50)
 @given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0.01, max_value=0.99))
 @example(2, 0.5)   # example with an integer
-def test_trueanomaly_with_scalar(ma, ecc):
+def test_true_anomaly_with_scalar(ma, ecc):
     assume(abs(ma) > 0.001)
-    ta = true_anomaly(ma, ecc)
+    ta = RV.true_anomaly(ma, ecc)
     # Contrast Result to E from ta
     # cos(E) = (e + cos(ta)) / (1 + e*cos(ta))
     E = np.arccos((ecc + np.cos(ta)) / (1 + ecc * np.cos(ta)))
@@ -42,20 +43,20 @@ def test_trueanomaly_with_scalar(ma, ecc):
 
 
 @given(st.floats(min_value=0.01, max_value=0.99))
-def test_trueanomaly_errors(ecc):
+def test_true_anomaly_errors(ecc):
 
     with pytest.raises(TypeError):
-        true_anomaly([], ecc)
+        RV.true_anomaly([], ecc)
 
     with pytest.raises(ValueError):
-        true_anomaly(np.array([]), ecc)
+        RV.true_anomaly(np.array([]), ecc)
 
 
 @given(st.lists(st.floats(), min_size=1), st.floats(), st.floats(min_value=0.01))
 def test_mean_anomaly(t, t0, p):
-    """Mean anomaly is an angle, doen't have a constraint value."""
+    """Mean anomaly is an angle, doesn't have a constraint value."""
     t = np.array(t)
-    ma = mean_anomaly(t, t0, p)
+    ma = RV.mean_anomaly(t, t0, p)
 
     assert len(t) == len(ma)
     assert isinstance(t, np.ndarray)
@@ -73,8 +74,8 @@ def test_radial_velocity():
 def test_rv_curve():
     assert False
 # def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
-#     ma = mean_anomaly(times, t0, period)
-#     ta = true_anomaly(ma, ecc)
+#     ma = RV.mean_anomaly(times, t0, period)
+#     ta = RV.true_anomaly(ma, ecc)
 #     rv = radial_velocity(gamma, k, ta, omega, ecc)
 #     return rv
 
