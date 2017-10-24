@@ -15,21 +15,13 @@
 # fe_h - Host star metalicity         (dex)
 # logg - Host star logg           (cm s^-2)
 # Source - List of sources
-name         = HD30501
-mean_val     = 23.710
-k1           = 1.7031
-k2           = -20.000     # m1/m2 = 20/1.7
-omega        = 70.4
-eccentricity = 0.741
-tau          = 53851.5
-period       = 2073.6
-m_star       = 0.81
-msini        = 62.3
-m_true       = 90
-temp         = 5174
-fe_h         = 0.08
-logg         = 4.54
-#r_star      =
-#age         =
-#a           =
-#source      =
+name         = Test
+mean_val     = 10
+k1           = 1
+k2           = -10    # m1/m2 = 10
+omega        = 0
+eccentricity = 0
+tau          = 54000
+period       = 10
+msini        = 10
+m_true       = 100

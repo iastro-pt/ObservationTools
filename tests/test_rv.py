@@ -20,7 +20,7 @@ def test_parse_params():
 
     assert isinstance(params, dict)
     assert "name" in params.keys()
-    assert params["name"] == "hd30501"
+    assert params["name"] == "test"
     assert "period" in params.keys()
     assert isinstance(params["period"], float)
 
