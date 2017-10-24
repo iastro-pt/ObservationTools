@@ -93,8 +93,8 @@ def test_RV_from_params_circular(params):
     rvs = RV_from_params(time, params)
     min_val = params["mean_val"] - params["k1"]
     max_val = params["mean_val"] + params["k1"]
-    assert np.all(rvs < max_val)
-    assert np.all(rvs > min_val)
+    assert np.all(rvs <= max_val)
+    assert np.all(rvs >= min_val)
 
 
 # mean_val k1 period tau omega eccentricity
@@ -151,8 +151,8 @@ def test_from_params_companion(params):
     min_rv = np.min(rvs)
     print("max_val", max_val, "min_val", min_val)
     print("max_rv", max_rv, "min_rv", min_rv)
-    assert np.all(rvs < max_val)
-    assert np.all(rvs > min_val)
+    assert np.all(rvs <= max_val)
+    assert np.all(rvs >= min_val)
     if params["eccentricity"] == 0:
         assert np.allclose(a_2, b_2)
     else:
