@@ -24,6 +24,9 @@ class RV(object):
         self.tau = params["tau"]
         self.mean_val = params["mean_val"]
         self.omega = params["omega"]
+    def __repr__(self):
+        return "RV(semi_amp={1}, period={2}, ecc={3}, tau={4}, omega={5}, gamma={6}, params={7})".format(
+            self.__class__, self.semi_amp, self.period, self.ecc, self.tau, self.omega, self.gamma, self.params)
 
     def params_from_file(self, paramfile):
         param_dict = parse_parameter_file(paramfile)
