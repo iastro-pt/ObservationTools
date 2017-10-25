@@ -29,6 +29,7 @@ try:
     from utils_debug import pv
 except ImportError:
     from utils.utils_debug import pv
+from utils.rv_utils import RV
 
 c_km_s = c.to(u.kilometer / u.second)  # Speed of light in km/s
 
@@ -147,6 +148,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
     obs_times = join_times(obs_times, obs_list)
     obs_jd = strtimes2jd(obs_times, reduced=True)
 
+
     # Calculate companion semi-major axis
     if mode in ("error", "indiv"):
         pass
@@ -206,6 +208,10 @@ def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_
 
         Displays matplotlib figure.
     """
+
+    host = RV.from_dict(params)
+    companion = RV.from_dict(params)
+    companion.semi_amp = params["k2"]
     phase = np.linspace(-0.5, 0.5, 100) * cycle_fraction
     t = params["tau"] + phase * params["period"]
 
