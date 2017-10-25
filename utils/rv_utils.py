@@ -48,7 +48,7 @@ class RV(object):
 
     def rv_at_times(self, t):
         """Evaluate RV at the provided times."""
-        true_anomaly = self.true_anomaly(self.mean_anomaly(t, self.tau, self.period))
+        true_anomaly = self.true_anomaly(self.mean_anomaly(t, self.tau, self.period), self.ecc)
         return self.radial_velocity(self.gamma, self.semi_amp,
                                     true_anomaly, self.omega, self.ecc )
 
