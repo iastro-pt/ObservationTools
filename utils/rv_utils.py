@@ -57,6 +57,10 @@ class RV(object):
         phase = np.linspace(0, 2*np.pi, points)
         times = phase * self.params["period"] + self.params["t0"]
         return self.rv_at_times(times)
+    def max_amp(self):
+        amp_1 = self.semi_amp * (1 + self.ecc * np.cos(self.omega * np.pi / 180))
+        amp_2 = self.semi_amp * (1 - self.ecc * np.cos(self.omega * np.pi / 180))
+        return np.max([np.abs(amp_1), np.abs(amp_2)])
 
     # #######################################################
     # Functions for RV calculations
