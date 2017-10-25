@@ -52,11 +52,11 @@ class RV(object):
         return self.radial_velocity(self.gamma, self.semi_amp,
                                     true_anomaly, self.omega, self.ecc )
 
-    def rv_full_phase(self, points=100):
+    def rv_full_phase(self, center=0, points=100):
         """Return RV curve evaluated one full phase."""
-        phase = np.linspace(0, 2*np.pi, points)
-        times = phase * self.params["period"] + self.params["t0"]
-        return self.rv_at_times(times)
+        phase = np.linspace(0, 1, points) + center
+        return self.rv_at_phase(phase)
+
     def max_amp(self):
         amp_1 = self.semi_amp * (1 + self.ecc * np.cos(self.omega * np.pi / 180))
         amp_2 = self.semi_amp * (1 - self.ecc * np.cos(self.omega * np.pi / 180))
