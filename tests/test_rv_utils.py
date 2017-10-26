@@ -6,8 +6,7 @@ from hypothesis import strategies as st
 from hypothesis import given, example, assume, settings
 
 import rv
-from utils.rv_utils import RV
-from utils.rv_utils import jd2datetime, datetime2jd
+from utils.rv_utils import RV, JulianDate
 from utils.rv_utils import RV_from_params
 
 
@@ -163,22 +162,103 @@ def test_from_params_companion(params):
 @pytest.mark.parametrize("jd, expected", [
     (2400000.5, (1858, 11, 17)),
     (2458130.1, (2018, 1, 11, 14, 24, 0))])
-def test_jd2datetime(jd, expected):
-    assert abs(jd2datetime(jd) - datetime.datetime(*expected)) < datetime.timedelta(seconds=1)
+def test_JulianDate_to_datetime(jd, expected):
+    jd = JulianDate(jd)
+    assert abs(jd.to_datetime() - datetime.datetime(*expected)) < datetime.timedelta(seconds=1)
+    assert isinstance(jd, JulianDate)
+    assert isinstance(jd.to_datetime(), datetime.datetime)
+
+
+@pytest.mark.parametrize("jd, expected", [
+    (2400000.5, (1858, 11, 17)),
+    (2458130.1, (2018, 1, 11, 14, 24, 0))])
+def test_reduced_JulianDate_to_datetime(jd, expected):
+    jd = JulianDate(jd)
+    jd.reduce()
+    assert abs(jd.to_datetime() - datetime.datetime(*expected)) < datetime.timedelta(seconds=1)
+    assert isinstance(jd, JulianDate)
+    assert isinstance(jd.to_datetime(), datetime.datetime)
+
+
+@pytest.mark.parametrize("jd, expected", [
+    (00000.5, (1858, 11, 17)),
+    (58130.1, (2018, 1, 11, 14, 24, 0))])
+def test_prereduced_JulianDate_to_datetime(jd, expected):
+    jd = JulianDate(jd, reduced=True)
+    jd.reduce()
+    assert abs(jd.to_datetime() - datetime.datetime(*expected)) < datetime.timedelta(seconds=1)
+    assert isinstance(jd, JulianDate)
+    assert isinstance(jd.to_datetime(), datetime.datetime)
 
 
 @pytest.mark.parametrize("date, expected", [
     ((2012, 2, 12, 11, 31, 10), 2455969.979977),
     ((1990, 9, 6, 20), 2448141.333333)])
-def test_datetime2jd(date, expected):
+def test_JulianDate_from_datetime(date, expected):
     d = datetime.datetime(*date)
-    assert np.allclose(datetime2jd(d), expected)
-    assert np.allclose(datetime2jd(d), ephem.julian_date(d))
+    jd = JulianDate.from_datetime(d)
+    assert np.allclose(jd.jd, expected)
+    assert np.allclose(jd.jd, ephem.julian_date(d))
 
 
 @given(st.floats(min_value=2200000, max_value=2600000))
 def test_jd_conversions(jd):
-    """Test jd2datetime and datetime2jd are reversible"""
+    """Test JulianDate.to_datetime and JulianDate.from_datetime are reversible."""
+    assert np.allclose(jd,
+                       JulianDate(jd).jd)
+    assert np.allclose(JulianDate(jd).jd,
+                       JulianDate.from_datetime(JulianDate(jd).to_datetime()).jd)
+    assert np.allclose(ephem.julian_date(JulianDate(jd).to_datetime()),
+                       JulianDate.from_datetime(JulianDate(jd).to_datetime()).jd)
 
-    assert np.allclose(datetime2jd(jd2datetime(jd)), jd)
-    assert np.allclose(ephem.julian_date(jd2datetime(jd)), datetime2jd(jd2datetime(jd)))
+
+@pytest.mark.parametrize("date, expected", [
+    ((2012, 2, 12, 11, 31, 10), 2455969.979977),
+    ((1990, 9, 6, 20), 2448141.333333)])
+def test_JulianDate_from_datetime(date, expected):
+    d = datetime.datetime(*date)
+    jd = JulianDate.from_datetime(d)
+    assert np.allclose(jd.jd, expected)
+    assert np.allclose(jd.jd, ephem.julian_date(d))
+
+
+@pytest.mark.parametrize("date, expected", [
+    ((2012, 2, 12, 11, 31, 10), 55969.979977),
+    ((1990, 9, 6, 20), 48141.333333)])
+def test_JulianDate_reduce_datetime(date, expected):
+    d = datetime.datetime(*date)
+    jd = JulianDate.from_datetime(d, reduced=True)
+
+    assert jd.reduced
+    assert np.allclose(jd.jd, expected)
+    assert np.allclose(jd.jd, ephem.julian_date(d)-2400000)
+
+
+@pytest.mark.parametrize("juliandate, expected", [
+    (2455969.979977, 55969.979977),
+    (2448141.333333, 48141.333333)])
+def test_JulianDate_reduce_jd(juliandate, expected):
+    jd = JulianDate(juliandate)
+    assert jd.jd == juliandate
+    assert not jd.reduced
+    jd.reduce()
+    assert jd.reduced
+    assert np.allclose(jd.jd, expected)
+
+
+@pytest.mark.parametrize("expected, juliandate", [
+    ((2012, 2, 12, 11, 31, 10), 2455969.979977),
+    ((1990, 9, 6, 20), 2448141.333333)])
+def test_JulianDate_reduce_jd_to_datetime(expected, juliandate):
+    jd = JulianDate(juliandate)
+    jd.reduce()
+    assert abs(jd.to_datetime() - datetime.datetime(*expected)) < datetime.timedelta(seconds=1)
+
+
+@pytest.mark.parametrize("date, expected", [
+    ("2012-2-12 11:31:10", 2455969.979977),
+    ("1990-9-6 20:00:00", 2448141.333333)])
+def test_JulianDate_from_str(date, expected):
+    jd = JulianDate.from_str(date)
+    assert np.allclose(jd.jd, expected)
+    assert np.allclose(jd.jd, ephem.julian_date(date))

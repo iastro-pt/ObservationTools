@@ -7,6 +7,7 @@ from utils.parse import parse_paramfile
 from utils.parse import parse_paramfile
 
 # TODO: Replace "Any" with numpy type hint when available
+import ephem
 
 
 class RV(object):
@@ -51,7 +52,6 @@ class RV(object):
         true_anomaly = self.true_anomaly(self.mean_anomaly(t, self.tau, self.period), self.ecc)
         return self.radial_velocity(self.gamma, self.semi_amp,
                                     true_anomaly, self.omega, self.ecc )
-
     def rv_full_phase(self, center=0, points=100):
         """Return RV curve evaluated one full phase."""
         phase = np.linspace(0, 1, points) + center
@@ -292,37 +292,72 @@ def companion_amplitude(k_host, m_host, m_companion):
     return -k_host * m_host / m_companion
 
 
-def jd2datetime(jd, reduced=False):
-    # type: (float) -> Any
-    """Convert from a julian-date to a datetime object.
+class JulianDate(object):
+    """Handle julian dates."""
+    julian_epoch_dt = datetime.datetime(2000, 1, 1, 12)  # noon
+    julian_epoch_jd = datetime.timedelta(2451545)  # julian epoch in julian dates
+    reduce_jd = 2400000
 
-    Parameters
-    ----------
-    jd: float
-        Julian date to calculate datetime for.
-    reduced: bool
-        Is input jd in Reduced JD format, (JD-2400000)
+    def __init__(self, jd, reduced=False):
+        self.jd = jd
+        self.reduced = reduced
 
-    Returns
-    -------
-    dt: datetime object
-        Datetime of julian date.
-    Inspiration from https://stackoverflow.com/questions/13943062/
-    """
-    if reduced:
-        jd = jd + 2400000
-    julian_epoch = datetime.datetime(2000, 1, 1, 12)  # noon (the epoch name is unrelated)
-    j2000_jd = datetime.timedelta(2451545)            # julian epoch in julian dates
+    @classmethod
+    def from_datetime(cls, dt, reduced=False):
+        # type: (Any, bool) -> JulianDate
+        """Convert from a datetime to a jd object.
 
-    dt = datetime.timedelta(jd) + julian_epoch - j2000_jd
-    return dt
+        Test against pyehem.julian_date()
 
+        Parameters
+        ----------
+        dt: datetime object
+            Datetime for date to calculate jd.
+        reduced: bool
+            Return reduced JD, (JD-2400000)
 
-def datetime2jd(dt, reduced=False):
-    # type: (Any) -> float
-    """Convert from a datetime to a jd object.
+        Returns
+        -------
+        jd: JulianDate
+            JulianDate object.
+        Inspiration from https://stackoverflow.com/questions/13943062/
+        """
+        jd = dt - cls.julian_epoch_dt + cls.julian_epoch_jd
+        jd = float(jd.total_seconds()) / (24 * 60 * 60)  # Turn timedelta into a float
+        if reduced:
+            jd -= cls.reduce_jd
+        return cls(jd, reduced=reduced)
 
-    Test against pyehem.julian_date()
+    def to_datetime(self):
+        # type: None -> datetime.datetime
+        """ Return JulianDate as a datetime.datetime object.
+
+        Returns
+        -------
+        dt: datetime object
+            Datetime of julian date.
+        Inspiration from https://stackoverflow.com/questions/13943062/
+        """
+        print("self.jd", self.jd)
+        if self.reduced:
+            _jd = self.jd + self.reduce_jd
+        else:
+            _jd = self.jd
+        print("_jd", _jd)
+        dt = datetime.timedelta(_jd) + self.julian_epoch_dt - self.julian_epoch_jd
+        return dt
+
+    @classmethod
+    def from_str(cls, time_str, reduced=False):
+        jd = ephem.julian_date(time_str)
+        if reduced:
+            jd -= self.reduce_jd
+        return cls(jd, reduced=reduced)
+
+    def reduce(self):
+        if not self.reduced:
+            self.jd -= self.reduce_jd
+            self.reduced = True
 
 
 def strtimes2jd(obs_times, reduced=False):
