@@ -6,30 +6,31 @@ To calculate when the radial velocity is different by a certain value.
 Plot radial velocity phase curves. Indicating obtained measurement locations.
 
 """
-import os
-import ephem
-import logging
 import argparse
-import numpy as np
-import astropy.units as u
-from typing import Dict, List, Any, Union
+import logging
 from datetime import datetime
+from typing import Dict, List, Any, Union
+
+import astropy.units as u
+import ephem
+import matplotlib.pyplot as plt
+import numpy as np
 from astropy.constants import c
-from utils.rv_utils import companion_amplitude, jd2datetime, RV_from_params
-from utils.parse import parse_obslist, parse_paramfile
+from mpl_toolkits.axes_grid1 import host_subplot
+
+from utils.parse import parse_paramfile
+from utils.rv_utils import companion_amplitude, RV_from_params, strtimes2jd, join_times
+from utils.rv_utils import RV, JulianDate
+
 # try:
 #     from ajplanet import pl_rv_array
 #     use_ajplanet = False
 # except:
 #     use_ajplanet = False
-
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import host_subplot
 try:
     from utils_debug import pv
 except ImportError:
     from utils.utils_debug import pv
-from utils.rv_utils import RV
 
 c_km_s = c.to(u.kilometer / u.second)  # Speed of light in km/s
 
@@ -54,56 +55,6 @@ def _parser():
     parser.add_argument("--debug", help="Turning on debug output", action='store_true', default=False)
     return parser.parse_args()
 
-
-def strtimes2jd(obs_times, reduced=False):
-    # type: (List[str]) -> List[float]
-    """Convenience function for convert str times to reduced JD.
-    If reduced=True returns JD-2400000
-    """
-    reduce_value = 2400000 if reduced else 0
-
-    if obs_times is not None:
-        print("obs times", obs_times)
-        jds = [ephem.julian_date(t) - reduce_value for t in obs_times]
-        print("obs jd times", jds)
-        return jds
-    else:
-        return None
-
-
-def join_times(obs_times=None, obs_list=None):
-    # type: (List[str], str) -> List[str]
-    """Combine observation dates and turn to jd.
-
-    Parameters
-    ----------
-    obs_times: list of str or None
-        List of dates entered at command line.
-    obs_list: str or None
-        Filename to observation list.
-
-    Returns
-    -------
-    obs_times: list of str
-        Combined list of date strings.
-
-    """
-    if obs_times is None:
-        obs_times = []
-
-    if obs_list is None:
-        obs_list = []
-    else:
-        obs_list = parse_obslist(obs_list)
-
-    logging.debug(pv("obs_list"))
-    obs_times = obs_times + obs_list
-
-    logging.debug(pv("obs_times"))
-    if not obs_times:  # An empty list is "Falsely"
-        return None
-    else:
-        return obs_times
 
 
 def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs_times=None, mode='phase', rv_diff=None

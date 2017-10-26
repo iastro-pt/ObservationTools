@@ -1,4 +1,5 @@
 import rv
+import utils.rv_utils
 from utils import parse
 import pytest
 import numpy as np
@@ -78,7 +79,7 @@ def test_mid_min_max():
      ["2017-05-01", "2015-01-02", "2016-04-05 12:34:15", "2012-08-14 12:44:05", "2012-09-24 13:12:10"]),
 ])
 def test_join_times(times, obs_list, expected):
-    assert rv.join_times(times, obs_list) == expected
+    assert utils.rv_utils.join_times(times, obs_list) == expected
 
 
 @pytest.mark.parametrize("times,expected_jd", [
@@ -87,7 +88,7 @@ def test_join_times(times, obs_list, expected):
     (["2012-08-14 12:44:05", "2012-09-24 13:12:10"], [2456154.030613426, 2456195.050115741]),
 ])
 def test_strtimes2jd(times, expected_jd):
-    assert np.allclose(rv.strtimes2jd(times, reduced=False), expected_jd)
+    assert np.allclose(utils.rv_utils.strtimes2jd(times, reduced=False), expected_jd)
 
 
 @pytest.mark.parametrize("times,expected_jd", [
@@ -96,4 +97,7 @@ def test_strtimes2jd(times, expected_jd):
     (["2012-08-14 12:44:05", "2012-09-24 13:12:10"], [56154.030613426, 56195.050115741]),
 ])
 def test_reduced_strtimes2jd(times, expected_jd):
-    assert np.allclose(rv.strtimes2jd(times, reduced=True), expected_jd)
+    assert np.allclose(utils.rv_utils.strtimes2jd(times, reduced=True), expected_jd)
+
+
+@pytest.mark.matlotlib_image_compare

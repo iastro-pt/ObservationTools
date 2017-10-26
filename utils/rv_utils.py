@@ -324,25 +324,53 @@ def datetime2jd(dt, reduced=False):
 
     Test against pyehem.julian_date()
 
+
+def strtimes2jd(obs_times, reduced=False):
+    # type: (List[str]) -> List[float]
+    """Convenience function for convert str times to reduced JD.
+    If reduced=True returns JD-2400000
+    """
+    reduce_value = 2400000 if reduced else 0
+
+    if obs_times is not None:
+        print("obs times", obs_times)
+        jds = [ephem.julian_date(t) - reduce_value for t in obs_times]
+        print("obs jd times", jds)
+        return jds
+    else:
+        return None
+
+
+def join_times(obs_times=None, obs_list=None):
+    # type: (List[str], str) -> List[str]
+    """Combine observation dates and turn to jd.
+
     Parameters
     ----------
-    dt: datetime object
-        Datetime for date to calculate jd.
-    reduced: bool
-        Return reduced JD, (JD-2400000)
+    obs_times: list of str or None
+        List of dates entered at command line.
+    obs_list: str or None
+        Filename to observation list.
 
     Returns
     -------
-    jd: float
-        Julian date time
-    Inspiration from https://stackoverflow.com/questions/13943062/
+    obs_times: list of str
+        Combined list of date strings.
+
     """
-    julian_epoch = datetime.datetime(2000, 1, 1, 12)  # noon (the epoch name is unrelated)
-    j2000_jd = datetime.timedelta(2451545)            # julian epoch in julian dates
+    if obs_times is None:
+        obs_times = []
 
-    jd = dt - julian_epoch + j2000_jd
+    if obs_list is None:
+        obs_list = []
+    else:
+        obs_list = parse_obslist(obs_list)
 
-    jd = jd.total_seconds() / (24 * 60 * 60)  # Turn timedelta into a float
-    if reduced:
-        jd = jd - 2400000
-    return jd
+    logging.debug(pv("obs_list"))
+    obs_times = obs_times + obs_list
+
+    logging.debug(pv("obs_times"))
+    if not obs_times:  # An empty list is "Falsely"
+        return None
+    else:
+        return obs_times
