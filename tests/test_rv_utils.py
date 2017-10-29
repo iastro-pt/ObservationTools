@@ -264,6 +264,14 @@ def test_JulianDate_from_str(date, expected):
     assert np.allclose(jd.jd, ephem.julian_date(date))
 
 
+@pytest.mark.parametrize("datestr, dtime", [
+    ("2012-2-12 11:31:10", (2012, 2, 12, 11, 31, 10)),
+    ("1990-9-6 20:00:00", (1990, 9, 6, 20))])
+def test_JulianDate_from_str_to_datetime(datestr, dtime):
+    jd = JulianDate.from_str(datestr)
+    assert abs(jd.to_datetime() - datetime.datetime(*dtime)) < datetime.timedelta(seconds=1)
+
+
 from utils.rv_utils import strtimes2jd
 @pytest.mark.parametrize("obstimes, expected", [(["2012-1-5", "2014-4-8"], [2455931.5, 2456755.5]), (["1999-4-8"], [2451276.5]), ("1999-4-8", 2451276.5)])
 def test_str2jd_change(obstimes, expected):
