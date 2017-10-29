@@ -2,13 +2,12 @@ from utils.rv_utils import RV
 from utils.parse import parse_paramfile
 
 
-def test_initalize_RV_class():
-
+def test_rv_object_instance_of_rv_class():
     rv = RV()
     assert isinstance(rv, RV)
 
 
-def test_initalize_RV_from_dict():
+def test_initalize_rv_class_from_dict():
     params = {"k1": 1, "period": 2, "tau": 5000, "omega": 1, "eccentricity": 0.5, "mean_val": 5}
     rv = RV.from_dict(params)
     assert rv.semi_amp == params["k1"]
@@ -19,7 +18,7 @@ def test_initalize_RV_from_dict():
     assert rv.omega == params["omega"]
 
 
-def test_initalize_RV_from_file():
+def test_initalize_rv_class_from_file():
     paramfile = "tests/test_params.txt"
     # params = {"k1": 1, "period": 2, "tau":5000, "omega": 1, "eccentricity": 0.5, "mean_val": 5}
     rv = RV.from_file(paramfile)
