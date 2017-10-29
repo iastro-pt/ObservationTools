@@ -262,3 +262,9 @@ def test_JulianDate_from_str(date, expected):
     jd = JulianDate.from_str(date)
     assert np.allclose(jd.jd, expected)
     assert np.allclose(jd.jd, ephem.julian_date(date))
+
+
+from utils.rv_utils import strtimes2jd
+@pytest.mark.parametrize("obstimes, expected", [(["2012-1-5", "2014-4-8"], [2455931.5, 2456755.5]), (["1999-4-8"], [2451276.5]), ("1999-4-8", 2451276.5)])
+def test_str2jd_change(obstimes, expected):
+    assert strtimes2jd(obstimes) == expected

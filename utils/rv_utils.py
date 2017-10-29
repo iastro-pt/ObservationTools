@@ -1,8 +1,9 @@
 import datetime
+import logging
+
 import numpy as np
 from typing import Any, Dict
-from utils.parse import parse_paramfile
-
+from utils.parse import parse_paramfile, parse_obslist
 
 from utils.parse import parse_paramfile
 
@@ -341,6 +342,8 @@ class JulianDate(object):
         print("self.jd", self.jd)
         if self.reduced:
             _jd = self.jd + self.reduce_jd
+            if _jd > 3000000:
+                logging.warning("The julian date is {} > 300000, is this correct".format(_jd))
         else:
             _jd = self.jd
         print("_jd", _jd)
@@ -361,7 +364,7 @@ class JulianDate(object):
 
 
 def strtimes2jd(obs_times, reduced=False):
-    # type: (List[str]) -> List[float]
+    # type: (Union[str, List[str]]) -> List[float]
     """Convenience function for convert str times to reduced JD.
     If reduced=True returns JD-2400000
     """
@@ -369,7 +372,25 @@ def strtimes2jd(obs_times, reduced=False):
 
     if obs_times is not None:
         print("obs times", obs_times)
-        jds = [ephem.julian_date(t) - reduce_value for t in obs_times]
+
+        if isinstance(obs_times, str):
+            if reduced:
+                jds = JulianDate.from_str(obs_times)
+                jds.reduce()
+                jds = jds.jd
+            else:
+                jds = JulianDate.from_str(obs_times).jd
+        elif isinstance(obs_times, (list, tuple)):
+            if reduced:
+                jds = []
+                for obs in obs_times:
+                    jd = JulianDate.from_str(obs)
+                    jd.reduce()
+                    jds.append(jd.jd)
+                # jds = [JulianDate.from_str(obs).reduce().jd for obs in obs_times]
+            else:
+                jds = [JulianDate.from_str(obs).jd for obs in obs_times]
+        # jds = [ephem.julian_date(t) - reduce_value for t in obs_times]
         print("obs jd times", jds)
         return jds
     else:

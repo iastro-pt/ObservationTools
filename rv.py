@@ -97,7 +97,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
             raise ValueError("Filename given instead of dates for obs_times.")
 
     obs_times = join_times(obs_times, obs_list)
-    obs_jd = strtimes2jd(obs_times, reduced=True)
+    obs_jd = strtimes2jd(obs_times) # , reduced=True
 
 
     # Calculate companion semi-major axis

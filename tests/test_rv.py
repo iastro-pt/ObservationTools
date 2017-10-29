@@ -97,7 +97,6 @@ def test_strtimes2jd(times, expected_jd):
     (["2012-08-14 12:44:05", "2012-09-24 13:12:10"], [56154.030613426, 56195.050115741]),
 ])
 def test_reduced_strtimes2jd(times, expected_jd):
-    assert np.allclose(utils.rv_utils.strtimes2jd(times, reduced=True), expected_jd)
+    jd = utils.rv_utils.strtimes2jd(times, reduced=True)
+    assert np.allclose(jd, expected_jd)
 
-
-@pytest.mark.matlotlib_image_compare
