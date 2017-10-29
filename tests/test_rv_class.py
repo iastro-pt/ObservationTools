@@ -1,3 +1,5 @@
+import pytest
+
 from utils.rv_utils import RV
 from utils.parse import parse_paramfile
 
@@ -31,3 +33,23 @@ def test_initalize_rv_class_from_file():
     assert rv.gamma == params["mean_val"]
     assert rv.omega == params["omega"]
 
+
+@pytest.mark.parametrize("semi_amp, period, tau, gamma, omega", [
+    (1, 1, 1000, 10, 0),
+    (10, 10, 3800, 100, 100),
+])
+def test_rv_class_max_amp_on_circle(semi_amp, period, tau, gamma, omega):
+    ecc = 0
+    rv = RV(semi_amp, period, ecc, tau, gamma, omega)
+    assert rv.max_amp() == semi_amp
+
+
+@pytest.mark.parametrize("semi_amp, period, ecc, tau, gamma, omega, expected_amp", [
+    (1, 1, 0.25, 1000, 10, 0, 1.25),
+    (10, 10, 0.5, 2800, 100, 300, 12.5),
+    (20, 10, 0.75, 5800, 100, 180, 35.0),
+])
+def test_rv_class_max_amp_on_elipse(semi_amp, period, ecc, tau, gamma, omega, expected_amp):
+    rv = RV(semi_amp, period, ecc, tau, gamma, omega)
+    assert rv.max_amp() <= abs(semi_amp * (1 + ecc))   # omega = 0, 2pi etc
+    assert rv.max_amp() == expected_amp
