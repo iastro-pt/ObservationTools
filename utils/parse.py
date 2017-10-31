@@ -1,7 +1,6 @@
 """Functions for parsing the parameter files."""
 import os
 import logging
-from utils.utils_debug import pv
 from typing import List, Dict, Union
 
 
@@ -37,7 +36,7 @@ def parse_obslist(fname, path=None):
                 if "." in line:
                     line = line.split(".")[0]   # remove fractions of seconds.
                 obstimes.append(line.strip())
-        logging.debug(pv("obstimes"))
+        logging.debug("obstimes = {}",format(obstimes))
     return obstimes
 
 

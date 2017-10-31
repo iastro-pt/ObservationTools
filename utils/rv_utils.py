@@ -8,7 +8,6 @@ from utils.parse import parse_paramfile, parse_obslist
 from utils.parse import parse_paramfile
 
 # TODO: Replace "Any" with numpy type hint when available
-import ephem
 
 
 class RV(object):
@@ -453,10 +452,10 @@ def join_times(obs_times=None, obs_list=None):
     else:
         obs_list = parse_obslist(obs_list)
 
-    logging.debug(pv("obs_list"))
+    logging.debug("obs list = {}",format(obs_list))
     obs_times = obs_times + obs_list
 
-    logging.debug(pv("obs_times"))
+    logging.debug("obs_times = {}".format(obs_times))
     if not obs_times:  # An empty list is "Falsely"
         return None
     else:

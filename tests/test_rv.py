@@ -3,7 +3,7 @@ import utils.rv_utils
 from utils import parse
 import pytest
 import numpy as np
-from hypothesis import given, example
+from hypothesis import given, example, settings
 from hypothesis import strategies as st
 
 

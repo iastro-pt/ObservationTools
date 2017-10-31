@@ -27,10 +27,6 @@ from utils.rv_utils import RV, JulianDate
 #     use_ajplanet = False
 # except:
 #     use_ajplanet = False
-try:
-    from utils_debug import pv
-except ImportError:
-    from utils.utils_debug import pv
 
 c_km_s = c.to(u.kilometer / u.second)  # Speed of light in km/s
 
@@ -274,7 +270,7 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     num_cycles = ((t_start + params["period"] * cycle_fraction) - np.min([t_start, obs_start])) / params["period"]
     num_points = np.ceil(500 * num_cycles)
     if num_points > 10000:
-        logging.debug(pv("num_points"))
+        logging.debug("num points" = {}.format(num_points))
         raise ValueError("num_points is to large")
 
     t_space = np.linspace(min([t_start, obs_start]), t_start + params["period"] * cycle_fraction, num_points)
