@@ -101,3 +101,22 @@ def test_reduced_strtimes2jd(times, expected_jd):
     jd = utils.rv_utils.strtimes2jd(times, reduced=True)
     assert np.allclose(jd, expected_jd)
 
+#
+# @pytest.mark.matlotlib_image_compare
+# def test_default_rv_phase_plot():
+#     return rv.main("data/HD30501_params.txt")
+#
+#
+# @pytest.mark.matlotlib_image_compare
+# def test_rv_phase_plot_with_obs():
+#     return rv.main("data/HD30501_params.txt")
+#
+#
+# @pytest.mark.matlotlib_image_compare
+# def test_default_rv_time_plot():
+#     return rv.main("data/HD30501_params.txt", mode="time")
+#
+#
+# @pytest.mark.matlotlib_image_compare
+# def test_rv_time_plot_with_obs():
+#     return rv.main("data/HD30501_params.txt", mode="time")
