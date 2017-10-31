@@ -48,13 +48,13 @@ def _parser():
     parser.add_argument('-m', '--mode', help='Display mode '
                         ' e.g. phase or time plot. Default="phase"',
                         choices=['phase', 'time'], default='phase', type=str)
+    parser.add_argument("--save_only", help="Only save the figure, do not show it.", action="store_true")
     parser.add_argument("--debug", help="Turning on debug output", action='store_true', default=False)
     return parser.parse_args()
 
 
-
-def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs_times=None, mode='phase', rv_diff=None
-    # type: (Dict[str, Union[str, float]], str, List[str], str, str) -> None
+def main(params, mode="phase", obs_times=None, obs_list=None, date=None, save_only=False):  # obs_times=None, mode='phase', rv_diff=None
+    # type: (Dict[str, Union[str, float]], str, List[str], str, str, bool) -> None
     r"""Radial velocity displays.
 
     Parameters
@@ -121,14 +121,17 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None):  # obs
             parameters["true_mass_flag"] = true_mass_flag   # True if true mass used
 
     if mode == "phase":
-            RV_phase_curve(parameters, t_past=obs_jd)
+        fig = RV_phase_curve(parameters, t_past=obs_jd)
     elif mode == "time":
         if date is not None:
             date = ephem.julian_date(date)
-        RV_time_curve(parameters, t_past=obs_jd, start_day=date)
-
+        fig = RV_time_curve(parameters, t_past=obs_jd, start_day=date)
     else:
         raise NotImplementedError("Other modes are not Implemented yet.")
+    if not save_only:
+        fig.show()
+
+    return fig
 
 
 def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False):
@@ -222,8 +225,9 @@ def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_
     ax2.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
 
     plt.legend(loc=0)
-    plt.show()
-    return 0
+    return fig
+
+
 
 
 # Lots of duplication - could be improved
@@ -341,8 +345,7 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     ax2.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
 
     plt.legend(loc=0)
-    plt.show()
-    return 0
+    return fig
 
 
 if __name__ == '__main__':
@@ -357,4 +360,4 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.WARNING,
                             format='%(asctime)s %(levelname)s %(message)s')
 
-    main(**opts)
+    fig = main(**opts)
