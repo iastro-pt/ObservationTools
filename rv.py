@@ -287,7 +287,7 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     ax1 = host_subplot(111)
     ax1.plot(t_space - t_start, host_rvs, label="Host", lw=2, color="k")
 
-    start_dt = jd2datetime(t_start, reduced=True)
+    start_dt = JulianDate(t_start).to_datetime()
     if (start_dt.hour == 0) and (start_dt.minute == 0) and (start_dt.second == 0):
         start_string = datetime.strftime(start_dt, "%Y-%m-%d")
     else:

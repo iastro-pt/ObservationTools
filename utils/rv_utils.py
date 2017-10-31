@@ -298,6 +298,7 @@ class JulianDate(object):
     julian_epoch_dt = datetime.datetime(2000, 1, 1, 12)  # noon
     julian_epoch_jd = datetime.timedelta(2451545)  # julian epoch in julian dates
     reduce_jd = 2400000
+    strformat = "%Y-%m-%d %H:%M:%S"
 
     def __init__(self, jd, reduced=False):
         self.jd = jd
@@ -351,11 +352,42 @@ class JulianDate(object):
         return dt
 
     @classmethod
-    def from_str(cls, time_str, reduced=False):
-        jd = ephem.julian_date(time_str)
-        if reduced:
-            jd -= self.reduce_jd
-        return cls(jd, reduced=reduced)
+    def from_str(cls, time_str, format=strformat):
+        """Return JulianDate from a time string.
+
+        Inputs
+        ------
+        time_str: str
+        format: str
+            Format of time string.
+
+        Returns
+        -------
+        dt: datetime object
+            Datetime of julian date.
+        """
+        if format is None:
+            format = cls.strformat
+        dt = datetime.datetime.strptime(time_str, format)
+        return cls.from_datetime(dt)
+
+    def to_str(self, format=strformat):
+        """Return date string from a JulianDate.
+
+        Input
+        -----
+        format: str
+             String datetime format.
+
+        Returns
+        -------
+        datesting: str
+            String with date.
+        """
+        if format is None:
+            format = self.strformat
+        dt = self.to_datetime()
+        return dt.strftime(format)
 
     def reduce(self):
         if not self.reduced:
@@ -363,8 +395,8 @@ class JulianDate(object):
             self.reduced = True
 
 
-def strtimes2jd(obs_times, reduced=False):
-    # type: (Union[str, List[str]]) -> List[float]
+def strtimes2jd(obs_times, reduced=False, format=None):
+    # type: (Union[str, List[str]], bool, Union[None, str]) -> List[float]
     """Convenience function for convert str times to reduced JD.
     If reduced=True returns JD-2400000
     """
@@ -375,22 +407,21 @@ def strtimes2jd(obs_times, reduced=False):
 
         if isinstance(obs_times, str):
             if reduced:
-                jds = JulianDate.from_str(obs_times)
+                jds = JulianDate.from_str(obs_times, format)
                 jds.reduce()
                 jds = jds.jd
             else:
-                jds = JulianDate.from_str(obs_times).jd
+                jds = JulianDate.from_str(obs_times, format).jd
         elif isinstance(obs_times, (list, tuple)):
             if reduced:
                 jds = []
                 for obs in obs_times:
-                    jd = JulianDate.from_str(obs)
+                    jd = JulianDate.from_str(obs, format)
                     jd.reduce()
                     jds.append(jd.jd)
                 # jds = [JulianDate.from_str(obs).reduce().jd for obs in obs_times]
             else:
-                jds = [JulianDate.from_str(obs).jd for obs in obs_times]
-        # jds = [ephem.julian_date(t) - reduce_value for t in obs_times]
+                jds = [JulianDate.from_str(obs, format).jd for obs in obs_times]
         print("obs jd times", jds)
         return jds
     else:

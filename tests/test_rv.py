@@ -82,18 +82,19 @@ def test_join_times(times, obs_list, expected):
     assert utils.rv_utils.join_times(times, obs_list) == expected
 
 
-@pytest.mark.parametrize("times,expected_jd", [
-    ([], []),
-    (["2017-05-01", "2015-01-02", "2016-04-05 12:34:15"], [2457874.5, 2457024.5, 2457484.023784722]),
-    (["2012-08-14 12:44:05", "2012-09-24 13:12:10"], [2456154.030613426, 2456195.050115741]),
+@pytest.mark.parametrize("times, format, expected_jd", [
+    ([], None, []),
+    (["2017-05-01 00:00:00", "2015-01-02 00:00:00", "2016-04-05 12:34:15"], None, [2457874.5, 2457024.5, 2457484.023784722]),
+    (["2017-05-01", "2015-01-02", "2016-04-05"], "%Y-%m-%d", [2457874.5, 2457024.5, 2457483.5]),
+    (["2012-08-14 12:44:05", "2012-09-24 13:12:10"], "%Y-%m-%d %H:%M:%S", [2456154.030613426, 2456195.050115741]),
 ])
-def test_strtimes2jd(times, expected_jd):
-    assert np.allclose(utils.rv_utils.strtimes2jd(times, reduced=False), expected_jd)
+def test_strtimes2jd_with_formats(times, format, expected_jd):
+    assert np.allclose(utils.rv_utils.strtimes2jd(times, reduced=False, format=format), expected_jd)
 
 
 @pytest.mark.parametrize("times,expected_jd", [
     ([], []),
-    (["2017-05-01", "2015-01-02", "2016-04-05 12:34:15"], [57874.5, 57024.5, 57484.023784722]),
+    (["2017-05-01 00:00:00", "2015-01-02 00:00:00", "2016-04-05 12:34:15"], [57874.5, 57024.5, 57484.023784722]),
     (["2012-08-14 12:44:05", "2012-09-24 13:12:10"], [56154.030613426, 56195.050115741]),
 ])
 def test_reduced_strtimes2jd(times, expected_jd):

@@ -256,8 +256,8 @@ def test_JulianDate_reduce_jd_to_datetime(expected, juliandate):
 
 
 @pytest.mark.parametrize("date, expected", [
-    ("2012-2-12 11:31:10", 2455969.979977),
-    ("1990-9-6 20:00:00", 2448141.333333)])
+    ("2012-02-12 11:31:10", 2455969.979977),
+    ("1990-09-06 20:00:00", 2448141.333333)])
 def test_JulianDate_from_str(date, expected):
     jd = JulianDate.from_str(date)
     assert np.allclose(jd.jd, expected)
@@ -265,14 +265,44 @@ def test_JulianDate_from_str(date, expected):
 
 
 @pytest.mark.parametrize("datestr, dtime", [
-    ("2012-2-12 11:31:10", (2012, 2, 12, 11, 31, 10)),
-    ("1990-9-6 20:00:00", (1990, 9, 6, 20))])
+    ("2012-02-12 11:31:10", (2012, 2, 12, 11, 31, 10)),
+    ("1990-09-06 20:00:00", (1990, 9, 6, 20))])
 def test_JulianDate_from_str_to_datetime(datestr, dtime):
     jd = JulianDate.from_str(datestr)
     assert abs(jd.to_datetime() - datetime.datetime(*dtime)) < datetime.timedelta(seconds=1)
 
 
 from utils.rv_utils import strtimes2jd
-@pytest.mark.parametrize("obstimes, expected", [(["2012-1-5", "2014-4-8"], [2455931.5, 2456755.5]), (["1999-4-8"], [2451276.5]), ("1999-4-8", 2451276.5)])
-def test_str2jd_change(obstimes, expected):
-    assert strtimes2jd(obstimes) == expected
+@pytest.mark.parametrize("obstimes, expected", [(["2012-01-05", "2014-04-08"], [2455931.5, 2456755.5]), (["1999-04-08"], [2451276.5]), ("1999-04-08", 2451276.5)])
+def test_strtimes2jd(obstimes, expected):
+    assert strtimes2jd(obstimes, format="%Y-%m-%d") == expected
+
+
+@pytest.mark.parametrize("input, expected", [
+    (2456755.5, "2014-04-08"),
+    (2455931.5, "2012-01-05"),
+    (2451276.5, "1999-04-08")
+])
+def test_juliandate_to_str(input, expected):
+    jd = JulianDate(input)
+    format = "%Y-%m-%d"
+    assert jd.to_str(format) == expected
+
+
+@pytest.mark.parametrize("input", [
+    2456755.5,
+    2455931.5,
+    2451276.5
+])
+def test_juliandate_to_and_frm_str_starting_from_jd(input):
+    assert JulianDate.from_str(JulianDate(input).to_str()).jd == input
+
+
+@pytest.mark.parametrize("input, format", [
+    ("2014-04-08", "%Y-%m-%d"),
+    ("2012-01-05", "%Y-%m-%d"),
+    ("1999-04-08 12:10:30", "%Y-%m-%d %H:%M:%S")
+])
+def test_juliandate_to_and_frm_str_starting_from_str(input, format):
+    assert JulianDate.from_str(input, format).to_str(format) == input
+
