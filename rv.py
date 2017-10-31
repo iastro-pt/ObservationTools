@@ -270,7 +270,7 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     num_cycles = ((t_start + params["period"] * cycle_fraction) - np.min([t_start, obs_start])) / params["period"]
     num_points = np.ceil(500 * num_cycles)
     if num_points > 10000:
-        logging.debug("num points" = {}.format(num_points))
+        logging.debug("num points = {}".format(num_points))
         raise ValueError("num_points is to large")
 
     t_space = np.linspace(min([t_start, obs_start]), t_start + params["period"] * cycle_fraction, num_points)
