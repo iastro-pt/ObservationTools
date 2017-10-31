@@ -43,6 +43,13 @@ class RV(object):
         param_dict = parse_paramfile(filename)
         return cls.from_dict(param_dict)
 
+    @property
+    def ignore_mean(self, val=None):
+        if val is None:
+            return self.params.get("ignore_mean", False)
+        else:
+            return val
+
     def rv_at_phase(self, phase):
         t = phase * self.period + self.tau
         return self.rv_at_times(t)
