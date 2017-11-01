@@ -1,4 +1,4 @@
-"""Test code for visibilty.py."""
+"""Test code for visibility.py."""
 
 import pytest
 from visibility import decdeg2dms, StarObsPlot, VisibilityPlot
