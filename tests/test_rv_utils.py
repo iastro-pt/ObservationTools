@@ -3,7 +3,7 @@ import pytest
 import datetime
 import numpy as np
 from hypothesis import strategies as st
-from hypothesis import given, example, assume, settings
+from hypothesis import given, example, assume
 
 import rv
 from utils.rv_utils import RV, JulianDate
@@ -26,7 +26,6 @@ def test_true_anomaly(ma, ecc):
 
 
 # issue with limits 0-pi only
-@settings(max_examples=50)
 @given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0.01, max_value=0.99))
 @example(2, 0.5)   # example with an integer
 def test_true_anomaly_with_scalar(ma, ecc):
@@ -97,7 +96,6 @@ def test_RV_from_params_circular(params):
 
 
 # mean_val k1 period tau omega eccentricity
-@settings(max_examples=100)
 @given(st.floats(min_value=0, max_value=1e6, allow_nan=False, allow_infinity=False),
        st.floats(min_value=0.1, max_value=1e5, allow_nan=False, allow_infinity=False),
        st.floats(min_value=0.1, max_value=1e6, allow_nan=False, allow_infinity=False),
