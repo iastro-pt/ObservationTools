@@ -11,7 +11,7 @@ from utils.rv_utils import RV_from_params
 
 
 # issue with limits  0-pi only
-@given(st.lists(st.floats(min_value=0, max_value=np.pi), min_size=1), st.floats(min_value=0.05, max_value=0.99))
+@given(st.lists(st.floats(min_value=0, max_value=np.pi), min_size=1), st.floats(min_value=0, max_value=1))
 def test_true_anomaly(ma, ecc):
 
     ma = np.asarray(ma)
@@ -26,7 +26,7 @@ def test_true_anomaly(ma, ecc):
 
 
 # issue with limits 0-pi only
-@given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0.01, max_value=0.99))
+@given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0, max_value=1))
 @example(2, 0.5)   # example with an integer
 def test_true_anomaly_with_scalar(ma, ecc):
     assume(abs(ma) > 0.001)
