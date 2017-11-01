@@ -1,4 +1,6 @@
+import numpy as np
 import pytest
+from hypothesis import given, strategies as st, example, assume
 
 from utils.rv_utils import RV
 from utils.parse import parse_paramfile
@@ -22,10 +24,9 @@ def test_initalize_rv_class_from_dict():
 
 def test_initalize_rv_class_from_file():
     paramfile = "tests/test_params.txt"
-    # params = {"k1": 1, "period": 2, "tau":5000, "omega": 1, "eccentricity": 0.5, "mean_val": 5}
     rv = RV.from_file(paramfile)
     params = parse_paramfile(paramfile)
-    print(rv)
+
     assert rv.semi_amp == params["k1"]
     assert rv.period == params["period"]
     assert rv.ecc == params["eccentricity"]
@@ -53,3 +54,45 @@ def test_rv_class_max_amp_on_elipse(semi_amp, period, ecc, tau, gamma, omega, ex
     rv = RV(semi_amp, period, ecc, tau, gamma, omega)
     assert rv.max_amp() <= abs(semi_amp * (1 + ecc))   # omega = 0, 2pi etc
     assert rv.max_amp() == expected_amp
+
+
+@given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0, max_value=1))
+@example(2, 0.5)   # example with an integer
+def test_true_anomaly_with_scalar(ma, ecc):
+    assume(abs(ma) > 0.001)
+    ta = RV.true_anomaly(ma, ecc)
+    E = np.arccos((ecc + np.cos(ta)) / (1 + ecc * np.cos(ta)))
+    assert np.allclose(ma, E - ecc * np.sin(E))
+    assert len(ta) == 1
+
+
+@given(st.floats(min_value=0.01, max_value=0.99))
+def test_true_anomaly_errors(ecc):
+
+    with pytest.raises(TypeError):
+        RV.true_anomaly([], ecc)
+
+    with pytest.raises(ValueError):
+        RV.true_anomaly(np.array([]), ecc)
+
+
+@given(st.lists(st.floats(), min_size=1), st.floats(), st.floats(min_value=0.01))
+def test_mean_anomaly(t, t0, p):
+    """Mean anomaly is an angle, doesn't have a constraint value."""
+    t = np.array(t)
+    ma = RV.mean_anomaly(t, t0, p)
+
+    assert len(t) == len(ma)
+    assert isinstance(t, np.ndarray)
+
+
+@given(st.lists(st.floats(min_value=0, max_value=np.pi), min_size=1), st.floats(min_value=0, max_value=1))
+def test_true_anomaly(ma, ecc):
+
+    ma = np.asarray(ma)
+    assume(np.all(np.abs(ma) > 0.0001))
+    ta = RV.true_anomaly(ma, ecc)
+    E = np.arccos((ecc + np.cos(ta)) / (1 + ecc * np.cos(ta)))
+
+    assert np.allclose(ma, E - ecc * np.sin(E), rtol=0.05)
+    assert len(ta) == len(ma)
