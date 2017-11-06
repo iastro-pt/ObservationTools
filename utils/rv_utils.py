@@ -187,6 +187,20 @@ class RV(object):
         return gamma + k * (np.cos(ta + omega) + ecc * np.cos(omega))
 
 
+    def __eq__(self, other):
+        # all properties the same
+        checks = [self.semi_amp == other.semi_amp,
+                  self.period == other.period,
+                  self.omega == other.omega,
+                  self.tau == other.tau,
+                  self.ecc == other.ecc,
+                  self.gamma == other.gamma]
+
+        return all(checks)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 # RV calculation done in python (for when ajplanet is not available)
 def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
     # type: (Any, float, float, float, float, float, float) -> Any
