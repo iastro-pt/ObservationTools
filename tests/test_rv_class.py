@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from hypothesis import given, strategies as st, example, assume
 
-from utils.rv_utils import RV
 from utils.parse import parse_paramfile
+from utils.rv_utils import RV
 
 
 def test_rv_object_instance_of_rv_class():
@@ -52,12 +52,12 @@ def test_rv_class_max_amp_on_circle(semi_amp, period, tau, gamma, omega):
 ])
 def test_rv_class_max_amp_on_elipse(semi_amp, period, ecc, tau, gamma, omega, expected_amp):
     rv = RV(semi_amp, period, ecc, tau, gamma, omega)
-    assert rv.max_amp() <= abs(semi_amp * (1 + ecc))   # omega = 0, 2pi etc
+    assert rv.max_amp() <= abs(semi_amp * (1 + ecc))  # omega = 0, 2pi etc
     assert rv.max_amp() == expected_amp
 
 
 @given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0, max_value=1))
-@example(2, 0.5)   # example with an integer
+@example(2, 0.5)  # example with an integer
 def test_true_anomaly_with_scalar(ma, ecc):
     assume(abs(ma) > 0.001)
     ta = RV.true_anomaly(ma, ecc)
@@ -68,7 +68,6 @@ def test_true_anomaly_with_scalar(ma, ecc):
 
 @given(st.floats(min_value=0.01, max_value=0.99))
 def test_true_anomaly_errors(ecc):
-
     with pytest.raises(TypeError):
         RV.true_anomaly([], ecc)
 
@@ -88,7 +87,6 @@ def test_mean_anomaly(t, t0, p):
 
 @given(st.lists(st.floats(min_value=0, max_value=np.pi), min_size=1), st.floats(min_value=0, max_value=1))
 def test_true_anomaly(ma, ecc):
-
     ma = np.asarray(ma)
     assume(np.all(np.abs(ma) > 0.0001))
     ta = RV.true_anomaly(ma, ecc)
@@ -100,7 +98,7 @@ def test_true_anomaly(ma, ecc):
 
 def test_create_companion():
     host = RV(semi_amp=1, m1=10, m2=5)
-    companion= host.create_companion()
+    companion = host.create_companion()
 
     assert companion.semi_amp == -host.semi_amp * host._params["m1"] / host._params["m2"]
     assert companion._params["k2"] == host._params["k1"]
@@ -110,7 +108,7 @@ def test_create_companion():
 @pytest.mark.parametrize("k2", [1, 10, 30])
 def test_create_companion_with_k2(k2):
     host = RV(semi_amp=1, m1=10, m2=5, k2=k2)
-    companion= host.create_companion()
+    companion = host.create_companion()
 
     assert companion.semi_amp == k2  # does not depend on m1 and m2 if k2 given
 
@@ -137,10 +135,9 @@ def test_create_companion_with_mass_ratio(semi_amp, mass_ratio):
     assert companion._params["k1"] == companion.semi_amp
 
 
-
 def test_double_create_companion_returns_host():
     host = RV(semi_amp=1, m1=10, m2=5)
-    companion= host.create_companion()
+    companion = host.create_companion()
 
     host_2 = companion.create_companion()
 
@@ -154,7 +151,7 @@ def test_double_create_companion_returns_host():
 def test_double_create_companion_with_ratio_returns_host(mass_ratio):
     host = RV(semi_amp=1, m1=10, m2=5)
     print("host parsm", host._params)
-    companion= host.create_companion(mass_ratio=mass_ratio)
+    companion = host.create_companion(mass_ratio=mass_ratio)
     print("comp params", companion._params)
     host_2 = companion.create_companion(1.0 / mass_ratio)
     print("host_2 params", host_2._params)
@@ -164,7 +161,7 @@ def test_double_create_companion_with_ratio_returns_host(mass_ratio):
 
 
 def test_from_dict_works_properly():
-    params = {"k1":10, "eccentricity":0.5, "period":5, "mean_val":4, "tau":1, "omega":1, "m1":4, "m2":6}
+    params = {"k1": 10, "eccentricity": 0.5, "period": 5, "mean_val": 4, "tau": 1, "omega": 1, "m1": 4, "m2": 6}
 
     rv = RV.from_dict(params)
     assert rv._params.get("other_params") is None
@@ -173,9 +170,8 @@ def test_from_dict_works_properly():
 
 
 def test_param_from_dict_and_to_dict_give_the_same_dict():
-
-    params = {"k1":10, "eccentricity":0.5, "period":5, "mean_val":4, "tau":1, "omega":1,
-              "m1":4, "m2":6, "k2":100, "name":"test"}
+    params = {"k1": 10, "eccentricity": 0.5, "period": 5, "mean_val": 4, "tau": 1, "omega": 1,
+              "m1": 4, "m2": 6, "k2": 100, "name": "test"}
 
     rv1 = RV.from_dict(params)
     rv1_params = rv1.to_dict()

@@ -1,10 +1,11 @@
+import numpy as np
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+
 import rv
 import utils.rv_utils
 from utils import parse
-import pytest
-import numpy as np
-from hypothesis import given, example
-from hypothesis import strategies as st
 
 
 def test_parse_obslist():
@@ -35,14 +36,14 @@ def test_parse_list_string(in_list):
     assert parse.parse_list_string(str_list) == in_list
 
 
-#@example(['source1', 'source2 et. al. 2017']) # not equal.
-#@example(in_list="source1, source2 et. al. 2017")
+# @example(['source1', 'source2 et. al. 2017']) # not equal.
+# @example(in_list="source1, source2 et. al. 2017")
 def test_parse_list_string_with_strings():
     """Test list parse with strings.
 
     Triggers since they have a comma separator.
     """
-    in_list="source1, source2 et. al. 2017"
+    in_list = "source1, source2 et. al. 2017"
     str_list = str(in_list)
     assert parse.parse_list_string(str_list) == ["source1", "source2 et. al. 2017"]
 
@@ -84,7 +85,8 @@ def test_join_times(times, obs_list, expected):
 
 @pytest.mark.parametrize("times, format, expected_jd", [
     ([], None, []),
-    (["2017-05-01 00:00:00", "2015-01-02 00:00:00", "2016-04-05 12:34:15"], None, [2457874.5, 2457024.5, 2457484.023784722]),
+    (["2017-05-01 00:00:00", "2015-01-02 00:00:00", "2016-04-05 12:34:15"], None,
+     [2457874.5, 2457024.5, 2457484.023784722]),
     (["2017-05-01", "2015-01-02", "2016-04-05"], "%Y-%m-%d", [2457874.5, 2457024.5, 2457483.5]),
     (["2012-08-14 12:44:05", "2012-09-24 13:12:10"], "%Y-%m-%d %H:%M:%S", [2456154.030613426, 2456195.050115741]),
 ])

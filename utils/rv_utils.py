@@ -1,18 +1,19 @@
 import copy
 import datetime
 import logging
+from typing import Any, Dict
 
 import numpy as np
-from typing import Any, Dict
-from utils.parse import parse_paramfile, parse_obslist
 
+from utils.parse import parse_obslist
 from utils.parse import parse_paramfile
+
 
 # TODO: Replace "Any" with numpy type hint when available
 
 
 class RV(object):
-    def __init__(self, semi_amp=0.0, period=0.0, ecc =0.0,
+    def __init__(self, semi_amp=0.0, period=0.0, ecc=0.0,
                  tau=0.0, gamma=0.0, omega=0.0, **other_params):
         self.semi_amp = semi_amp
         self.period = period
@@ -44,7 +45,7 @@ class RV(object):
         for par in ["k1", "eccentricity", "period", "mean_val", "tau", "omega"]:
             other_params.pop(par)
         return cls(semi_amp=params["k1"], period=params["period"], ecc=params["eccentricity"],
-                  tau=params["tau"], gamma=params["mean_val"], omega=params["omega"], **other_params)
+                   tau=params["tau"], gamma=params["mean_val"], omega=params["omega"], **other_params)
 
     @classmethod
     def from_file(cls, filename):
@@ -87,7 +88,7 @@ class RV(object):
                 raise ValueError("A mass parameter (m1 or m2) was not provided")
             else:
                 # M1_jup = M1 * (M_sun / M_jup).value
-                mass_ratio = M1 / M2   # assuming m1 and m2 have same units
+                mass_ratio = M1 / M2  # assuming m1 and m2 have same units
             k2 = -params["k1"] * mass_ratio
             params["m1"], params["m2"] = params.get("m2"), params.get("m1")
 
@@ -114,7 +115,8 @@ class RV(object):
         """Evaluate RV at the provided times."""
         true_anomaly = self.true_anomaly(self.mean_anomaly(t, self.tau, self.period), self.ecc)
         return self.radial_velocity(self.gamma, self.semi_amp,
-                                    true_anomaly, self.omega, self.ecc )
+                                    true_anomaly, self.omega, self.ecc)
+
     def rv_full_phase(self, center=0, points=100):
         """Return RV curve evaluated one full phase."""
         phase = np.linspace(0, 1, points) + center
@@ -125,9 +127,6 @@ class RV(object):
         amp_2 = self.semi_amp * (1 - self.ecc * np.cos(self.omega * np.pi / 180))
         return np.max([np.abs(amp_1), np.abs(amp_2)])
 
-    # #######################################################
-    # Functions for RV calculations
-    # #######################################################
     @staticmethod
     def true_anomaly(ma, ecc, niterationmax=10000):
         # type: (Any, float, int) -> Any
@@ -169,8 +168,8 @@ class RV(object):
         while np.linalg.norm(ea - ea0, ord=1) > 1e-5 or niteration == 0:
             ea0 = ea
 
-            ff = ea - ecc * np.sin(ea) - ma   # Function
-            dff = 1 - ecc * np.cos(ea)        # Derivative
+            ff = ea - ecc * np.sin(ea) - ma  # Function
+            dff = 1 - ecc * np.cos(ea)  # Derivative
 
             # Use Newton method
             ea = ea0 - ff / dff
@@ -242,7 +241,6 @@ class RV(object):
         # Calculate radial velocity of star
         return gamma + k * (np.cos(ta + omega) + ecc * np.cos(omega))
 
-
     def __eq__(self, other):
         # all properties the same
         checks = [self.semi_amp == other.semi_amp,
@@ -256,6 +254,7 @@ class RV(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
 
 # RV calculation done in python (for when ajplanet is not available)
 def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
@@ -328,7 +327,7 @@ def RV_from_params(t, params, ignore_mean=False, companion=False):
         param_list = [params["mean_val"], params["k1"], params["omega"],
                       params["eccentricity"], params["tau"], params["period"]]
 
-    param_list[2] = np.deg2rad(param_list[2])   # convert omega to radians
+    param_list[2] = np.deg2rad(param_list[2])  # convert omega to radians
 
     for param in param_list:
         if isinstance(param, str):
@@ -495,7 +494,7 @@ def strtimes2jd(obs_times, reduced=False, format=None):
                     jd = JulianDate.from_str(obs, format)
                     jd.reduce()
                     jds.append(jd.jd)
-                # jds = [JulianDate.from_str(obs).reduce().jd for obs in obs_times]
+                    # jds = [JulianDate.from_str(obs).reduce().jd for obs in obs_times]
             else:
                 jds = [JulianDate.from_str(obs, format).jd for obs in obs_times]
         print("obs jd times", jds)
@@ -529,7 +528,7 @@ def join_times(obs_times=None, obs_list=None):
     else:
         obs_list = parse_obslist(obs_list)
 
-    logging.debug("obs list = {}",format(obs_list))
+    logging.debug("obs list = {}", format(obs_list))
     obs_times = obs_times + obs_list
 
     logging.debug("obs_times = {}".format(obs_times))

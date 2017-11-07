@@ -14,6 +14,8 @@ from utils.rv_utils import RV_from_params
 @pytest.mark.xfail
 def test_radial_velocity():
     assert False
+
+
 # def radial_velocity(gamma, k, ta, omega, ecc):
 #     # Calculate radial velocity of star
 #     return gamma + k * (np.cos(ta + omega) + ecc * np.cos(omega))
@@ -22,6 +24,8 @@ def test_radial_velocity():
 @pytest.mark.xfail
 def test_rv_curve():
     assert False
+
+
 # def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
 #     ma = RV.mean_anomaly(times, t0, period)
 #     ta = RV.true_anomaly(ma, ecc)
@@ -180,7 +184,7 @@ def test_JulianDate_reduce_datetime(date, expected):
 
     assert jd.reduced
     assert np.allclose(jd.jd, expected)
-    assert np.allclose(jd.jd, ephem.julian_date(d)-2400000)
+    assert np.allclose(jd.jd, ephem.julian_date(d) - 2400000)
 
 
 @pytest.mark.parametrize("juliandate, expected", [
@@ -222,7 +226,11 @@ def test_JulianDate_from_str_to_datetime(datestr, dtime):
 
 
 from utils.rv_utils import strtimes2jd
-@pytest.mark.parametrize("obstimes, expected", [(["2012-01-05", "2014-04-08"], [2455931.5, 2456755.5]), (["1999-04-08"], [2451276.5]), ("1999-04-08", 2451276.5)])
+
+
+@pytest.mark.parametrize("obstimes, expected",
+                         [(["2012-01-05", "2014-04-08"], [2455931.5, 2456755.5]), (["1999-04-08"], [2451276.5]),
+                          ("1999-04-08", 2451276.5)])
 def test_strtimes2jd(obstimes, expected):
     assert strtimes2jd(obstimes, format="%Y-%m-%d") == expected
 
@@ -254,4 +262,3 @@ def test_juliandate_to_and_frm_str_starting_from_jd(input):
 ])
 def test_juliandate_to_and_frm_str_starting_from_str(input, format):
     assert JulianDate.from_str(input, format).to_str(format) == input
-

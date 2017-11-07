@@ -19,8 +19,8 @@ from astropy.constants import c, M_sun, M_jup
 from mpl_toolkits.axes_grid1 import host_subplot
 
 from utils.parse import parse_paramfile
-from utils.rv_utils import companion_amplitude, RV_from_params, strtimes2jd, join_times
 from utils.rv_utils import RV, JulianDate
+from utils.rv_utils import companion_amplitude, RV_from_params, strtimes2jd, join_times
 
 # try:
 #     from ajplanet import pl_rv_array
@@ -53,7 +53,8 @@ def _parser():
     return parser.parse_args()
 
 
-def main(params, mode="phase", obs_times=None, obs_list=None, date=None, save_only=False):  # obs_times=None, mode='phase', rv_diff=None
+def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
+         save_only=False):  # obs_times=None, mode='phase', rv_diff=None
     # type: (Dict[str, Union[str, float]], str, List[str], str, str, bool) -> None
     r"""Radial velocity displays.
 
@@ -96,8 +97,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None, save_on
             raise ValueError("Filename given instead of dates for obs_times.")
 
     obs_times = join_times(obs_times, obs_list)
-    obs_jd = strtimes2jd(obs_times) # , reduced=True
-
+    obs_jd = strtimes2jd(obs_times)  # , reduced=True
 
     # Calculate companion semi-major axis
     if mode in ("error", "indiv"):
@@ -110,7 +110,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None, save_on
                 # Use true mass if given
                 if not parameters["m_true"] == "":
                     mass_used = parameters['m_true']
-                    true_mass_flag = True   # parameter to indicate if the true mass was used or not
+                    true_mass_flag = True  # parameter to indicate if the true mass was used or not
                 else:
                     mass_used = parameters["msini"]
                     true_mass_flag = False
@@ -121,7 +121,9 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None, save_on
             parameters['k2'] = companion_amplitude(parameters['k1'],
                                                    parameters['m_star'],
                                                    mass_used)
-            parameters["true_mass_flag"] = true_mass_flag   # True if true mass used
+            parameters["true_mass_flag"] = true_mass_flag  # True if true mass used
+
+    host_orbit = RV.from_dict(parameters)
 
     if mode == "phase":
         fig = RV_phase_curve(parameters, t_past=obs_jd)
