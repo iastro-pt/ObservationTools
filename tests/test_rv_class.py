@@ -96,3 +96,69 @@ def test_true_anomaly(ma, ecc):
 
     assert np.allclose(ma, E - ecc * np.sin(E), rtol=0.05)
     assert len(ta) == len(ma)
+
+
+def test_create_companion():
+    host = RV(semi_amp=1, m1=10, m2=5)
+    companion= host.create_companion()
+
+    assert companion.semi_amp == -host.semi_amp * host._params["m1"] / host._params["m2"]
+    assert companion._params["k2"] == host._params["k1"]
+    assert companion._params["k1"] == companion.semi_amp
+
+
+@pytest.mark.parametrize("k2", [1, 10, 30])
+def test_create_companion_with_k2(k2):
+    host = RV(semi_amp=1, m1=10, m2=5, k2=k2)
+    companion= host.create_companion()
+
+    assert companion.semi_amp == k2  # does not depend on m1 and m2 if k2 given
+
+    assert companion._params["k2"] == host._params["k1"]
+    assert companion._params["k1"] == companion.semi_amp
+
+
+# (Msun, Mjup)
+@pytest.mark.parametrize("semi_amp, mass_ratio", [
+    (1, 5.0), (0.8, 10), (10.2, 1024)])
+def test_create_companion_with_mass_ratio(semi_amp, mass_ratio):
+    host = RV(semi_amp=1, k1=1, m1=10, m2=5)
+    print("host params", host._params)
+
+    companion = host.create_companion(mass_ratio=mass_ratio)
+    print("companion params", companion._params)
+    assert companion.semi_amp == (- host.semi_amp * mass_ratio)
+    assert host.period == companion.period
+    assert host.gamma == companion.gamma
+    assert host.ecc == companion.ecc
+    assert host.tau == companion.tau
+
+    assert companion._params["k2"] == host._params["k1"]
+    assert companion._params["k1"] == companion.semi_amp
+
+
+
+def test_double_create_companion_returns_host():
+    host = RV(semi_amp=1, m1=10, m2=5)
+    companion= host.create_companion()
+
+    host_2 = companion.create_companion()
+
+    assert host_2.semi_amp == host.semi_amp
+    assert host == host_2
+    assert host != companion
+
+
+@pytest.mark.parametrize("mass_ratio", [
+    5.0, 10, 1024])
+def test_double_create_companion_with_ratio_returns_host(mass_ratio):
+    host = RV(semi_amp=1, m1=10, m2=5)
+    print("host parsm", host._params)
+    companion= host.create_companion(mass_ratio=mass_ratio)
+    print("comp params", companion._params)
+    host_2 = companion.create_companion(1.0 / mass_ratio)
+    print("host_2 params", host_2._params)
+    assert host_2.semi_amp == host.semi_amp
+    assert host == host_2
+    assert host != companion
+

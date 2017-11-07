@@ -1,3 +1,4 @@
+import copy
 import datetime
 import logging
 
@@ -43,12 +44,54 @@ class RV(object):
         param_dict = parse_paramfile(filename)
         return cls.from_dict(param_dict)
 
+    def create_companion(self, mass_ratio=None):
+        """Create companion RV object.
+
+        It has 3 ways to determine the amplitude of the companion in order of priority:
+            1: using a mass_ratio m1/m2 passed into the method.
+            2: If "k2" is already a parameter use that.
+            3: Calculate the mass ratio from m1 and m2. (In same units)
+
+        Switches k1 and k2 and m1 an m2 parameters. (m1 refers to self, while m2 the other body in orbit.)
+
+        Inputs
+        ------
+        mass_ratio: float
+            m_1 / m_2
+
+        Returns
+        ------
+        companion: RV
+            Rv object for the companion.
+        """
+        params = copy.copy(self._params)
+
+        if mass_ratio is not None:
+            k2 = -params["k1"] * mass_ratio
+        elif params.get("k2") is not None:
+            k2 = params.get("k2")
     @property
     def ignore_mean(self, val=None):
         if val is None:
             return self.params.get("ignore_mean", False)
         else:
-            return val
+            # Make from masses in parameters
+            M1 = params.get("m1")
+            M2 = params.get("m2")
+            if (M1 is None) or (M2 is None):
+                print("params =", params)
+                raise ValueError("A mass parameter (m1 or m2) was not provided")
+            else:
+                # M1_jup = M1 * (M_sun / M_jup).value
+                mass_ratio = M1 / M2   # assuming m1 and m2 have same units
+            k2 = -params["k1"] * mass_ratio
+            params["m1"], params["m2"] = params.get("m2"), params.get("m1")
+
+        params["k2"], params["k2_old"] = k2, params.get("k2")
+
+        params["k1"], params["k2"] = params["k2"], params["k1"]  # Switch to Companion
+        return RV.from_dict(params)
+
 
     def rv_at_phase(self, phase):
         t = phase * self.period + self.tau
