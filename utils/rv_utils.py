@@ -78,10 +78,6 @@ class RV(object):
             k2 = -params["k1"] * mass_ratio
         elif params.get("k2") is not None:
             k2 = params.get("k2")
-    @property
-    def ignore_mean(self, val=None):
-        if val is None:
-            return self.params.get("ignore_mean", False)
         else:
             # Make from masses in parameters
             M1 = params.get("m1")
@@ -100,6 +96,15 @@ class RV(object):
         params["k1"], params["k2"] = params["k2"], params["k1"]  # Switch to Companion
         return RV.from_dict(params)
 
+    @property
+    def ignore_mean(self):
+        return self._ignore_mean
+
+    @ignore_mean.setter
+    def ignore_mean(self, value=None):
+        if value is None:
+            val = self._params.get("ignore_mean", False)
+        self._ignore_mean = value
 
     def rv_at_phase(self, phase):
         t = phase * self.period + self.tau
