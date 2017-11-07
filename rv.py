@@ -15,7 +15,7 @@ import astropy.units as u
 import ephem
 import matplotlib.pyplot as plt
 import numpy as np
-from astropy.constants import c
+from astropy.constants import c, M_sun, M_jup
 from mpl_toolkits.axes_grid1 import host_subplot
 
 from utils.parse import parse_paramfile
@@ -74,6 +74,9 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None, save_on
     only_msini = False
     # Load in params and store as a dictionary
     parameters = parse_paramfile(params)
+
+    # Convert msun to jupyter masses
+    parameters["m1"] = parameters["m1"] * M_sun / M_jup
 
     # Test of core parameters
     for key in ["name", "k1", "eccentricity", "omega", "tau", "period"]:
