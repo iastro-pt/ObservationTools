@@ -162,3 +162,26 @@ def test_double_create_companion_with_ratio_returns_host(mass_ratio):
     assert host == host_2
     assert host != companion
 
+
+def test_from_dict_works_properly():
+    params = {"k1":10, "eccentricity":0.5, "period":5, "mean_val":4, "tau":1, "omega":1, "m1":4, "m2":6}
+
+    rv = RV.from_dict(params)
+    assert rv._params.get("other_params") is None
+    assert rv._params.get("m1") == 4
+    assert rv._params.get("m2") == 6
+
+
+def test_param_from_dict_and_to_dict_give_the_same_dict():
+
+    params = {"k1":10, "eccentricity":0.5, "period":5, "mean_val":4, "tau":1, "omega":1,
+              "m1":4, "m2":6, "k2":100, "name":"test"}
+
+    rv1 = RV.from_dict(params)
+    rv1_params = rv1.to_dict()
+    assert params == rv1_params
+    assert params == rv1._params
+    assert rv1_params == rv1._params
+
+    rv2 = RV.from_dict(rv1_params)
+    assert rv2 == rv1

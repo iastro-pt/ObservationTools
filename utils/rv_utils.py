@@ -20,23 +20,31 @@ class RV(object):
         self.tau = tau
         self.gamma = gamma
         self.omega = omega
-        self.params = self.param_dict()
+        self._params = self.orbit_dict()
 
         if other_params is not None:
-            self.params.update(other_params)
+            self._params.update(other_params)
 
     def __repr__(self):
-        return "RV(semi_amp={1}, period={2}, ecc={3}, tau={4}, omega={5}, gamma={6}, params={7})".format(
-            self.__class__, self.semi_amp, self.period, self.ecc, self.tau, self.omega, self.gamma, self.params)
+        return "RV(semi_amp={1}, period={2}, ecc={3}, tau={4}, omega={5}, gamma={6}, **{7})".format(
+            self.__class__, self.semi_amp, self.period, self.ecc, self.tau, self.omega, self.gamma, self._params)
 
-    def param_dict(self):
+    def orbit_dict(self):
         return {"k1": self.semi_amp, "period": self.period, "eccentricity": self.ecc,
                 "tau": self.tau, "mean_val": self.gamma, "omega": self.omega}
 
+    def to_dict(self):
+        # TODO: Update _params with orbit_dict incase of changes?
+        # return self._params.update(self.orbit_dict())
+        return self._params
+
     @classmethod
     def from_dict(cls, params):
+        other_params = params.copy()
+        for par in ["k1", "eccentricity", "period", "mean_val", "tau", "omega"]:
+            other_params.pop(par)
         return cls(semi_amp=params["k1"], period=params["period"], ecc=params["eccentricity"],
-                  tau=params["tau"], gamma=params["mean_val"], omega=params["omega"], other_params=params)
+                  tau=params["tau"], gamma=params["mean_val"], omega=params["omega"], **other_params)
 
     @classmethod
     def from_file(cls, filename):
