@@ -177,7 +177,7 @@ class RV(object):
             # Increase iteration number; if above limit, break with exception.
             niteration += 1
             if niteration >= niterationmax:
-                raise RuntimeError('Eccentric anomaly computation'
+                raise RuntimeError('Eccentric anomaly computation '
                                    'not converged.')
 
         # Compute true anomaly from eccentric anomaly

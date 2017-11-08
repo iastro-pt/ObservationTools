@@ -27,7 +27,7 @@ def test_parse_params():
     assert isinstance(params["period"], float)
 
 
-@given(st.lists(st.floats(allow_nan=False), min_size=1))
+@given(st.lists(st.floats(allow_nan=False, allow_infinity=False), min_size=1))
 def test_parse_list_string(in_list):
     """Test string of a list turned into list of the values.
 
