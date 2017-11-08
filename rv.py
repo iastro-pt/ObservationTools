@@ -117,13 +117,15 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
             parameters["true_mass_flag"] = true_mass_flag  # True if true mass used
 
     host_orbit = RV.from_dict(parameters)
+    companion_orbit = host_orbit.create_companion()
 
     if mode == "phase":
-        fig = RV_phase_curve(parameters, t_past=obs_jd)
+        fig = binary_phase_curve(host_orbit, companion_orbit, t_past=obs_jd)
     elif mode == "time":
         if date is not None:
+            print("Date doing into ehem.julian_date", date)
             date = ephem.julian_date(date)
-        fig = RV_time_curve(parameters, t_past=obs_jd, start_day=date)
+        fig = binary_time_curve(host_orbit, companion_orbit, t_past=obs_jd, start_day=date)
     else:
         raise NotImplementedError("Other modes are not Implemented yet.")
     if not save_only:
@@ -132,14 +134,14 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
     return fig
 
 
-def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False):
-    # type: (Dict[str, Union[str, float]], float, bool, Any, Any) -> int
+def binary_phase_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False):
+    # type: (RV, RV, float, bool, Any, Any) -> int
     """Plot RV phase curve centered on zero.
 
     Parameters
     ----------
-    params: dict
-        Parameters of system.
+    host: RV
+        RV class for systems host.
     cycle_fraction: float
         Fraction of phase space to plot. (Default=1)
     ignore_mean: bool
@@ -151,48 +153,44 @@ def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_
 
     Returns
     -------
-    exit_status: bool
-        Returns 0 if successful.
+    fig: matplotlib.Figure
+        Returns figure object.
 
-        Displays matplotlib figure.
     """
+    host.ignore_mean = ignore_mean
+    companion.ignore_mean = ignore_mean
 
-    host = RV.from_dict(params)
-    companion = RV.from_dict(params)
-    companion.semi_amp = params["k2"]
     phase = np.linspace(-0.5, 0.5, 100) * cycle_fraction
-    t = params["tau"] + phase * params["period"]
+    t = host.tau + phase * host.period
 
-    host_rvs = RV_from_params(t, params, ignore_mean=ignore_mean)
-    companion_rvs = RV_from_params(t, params, ignore_mean=ignore_mean, companion=True)
+    host_rvs = host.rv_at_phase(phase)
+    companion_rvs = companion.rv_at_phase(phase)
 
     fig = plt.figure(figsize=(10, 7))
     fig.subplots_adjust()
     ax1 = host_subplot(111)
-
     ax1.plot(phase, host_rvs, label="Host", lw=2, color="k")
     ax1.set_xlabel("Orbital Phase")
     ax1.set_ylabel("Host RV (km/s)")
 
     ax2 = ax1.twinx()
-    if params["true_mass_flag"]:
-        ax2.plot(phase, companion_rvs, '--', label="M_2 Companion", lw=2)
-    else:
-        ax2.plot(phase, companion_rvs, '--', label="M_2sini Companion", lw=2)
+    companion_label = generate_companion_label(companion)
+    ax2.plot(phase, companion_rvs, '--', label=companion_label, lw=2)
     ax2.set_ylabel("Companion RV (km/s)")
 
-    if 'name' in params.keys():
-        if "companion" in params.keys():
-            plt.title("RV Phase Curve for {} {}".format(params['name'].upper(), params['companion']))
+    if 'name' in host._params.keys():
+        if "companion" in host._params.keys():
+            plt.title("RV Phase Curve for {} {}".format(host._params['name'].upper(), host._params['companion']))
         else:
-            plt.title("RV Phase Curve for {}".format(params['name'].upper()))
+            plt.title("RV Phase Curve for {}".format(host._params['name'].upper()))
     else:
         plt.title("RV Phase Curve")
+
     if t_past:
         for t_num, t_val in enumerate(t_past):
-            phi = ((t_val - params["tau"]) / params["period"] + 0.5) % 1 - 0.5
-            rv_star = RV_from_params(t_val, params, ignore_mean=False)
-            rv_planet = RV_from_params(t_val, params, ignore_mean=False, companion=True)
+            phi = ((t_val - host.tau) / host.period + 0.5) % 1 - 0.5
+            rv_star = host.rv_at_phase(phi)
+            rv_planet = companion.rv_at_phase(phi)
             ax1.plot(phi, rv_star, ".", markersize=10, markeredgewidth=2)
             ax2.plot(phi, rv_planet, "+", markersize=10, markeredgewidth=2)
 
@@ -207,36 +205,31 @@ def RV_phase_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_
     #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
 
     # Determine rv max amplitudes.
-    a_1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    b_1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    amp1 = max([abs(a_1), abs(b_1)])
+    host_delta_y = host.max_amp() * 1.1
+    comp_delta_y = companion.max_amp() * 1.1
 
-    a_2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    b_2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    amp2 = max([abs(a_2), abs(b_2)])
+    ax1.set_ylim(host.gamma - host_delta_y, host.gamma + host_delta_y)
+    ax2.set_ylim(companion.gamma - comp_delta_y, companion.gamma + comp_delta_y)
 
-    # Adjust axis limits
-    ax1.set_ylim(params["mean_val"] - (amp1 * 1.1), params["mean_val"] + (amp1 * 1.1))
-    ax2.set_ylim(params["mean_val"] - (amp2 * 1.1), params["mean_val"] + (amp2 * 1.1))
-
-    ax1.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
-    ax2.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
+    ax1.axhline(host.gamma, color="black", linestyle="-.", alpha=0.5)
+    ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
 
     plt.legend(loc=0)
     return fig
 
 
-
-
 # Lots of duplication - could be improved
-def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False, start_day=None):
-    # type: (Dict[str, Union[str, float]], float, bool, Any, Any, Any) -> int
+
+
+def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False,
+                      start_day=None):
+    # type: (RV, RV, float, bool, Any, Any, Any) -> int
     """Plot RV phase curve centered on zero.
 
     Parameters
     ----------
-    params: dict
-        Parameters of system.
+    host: RV
+        RV class for system.
     cycle_fraction: float
         Fraction of phase space to plot. (Default=1)
     ignore_mean: bool
@@ -255,6 +248,9 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
 
         Displays matplotlib figure.
     """
+    host.ignore_mean = ignore_mean
+    companion.ignore_mean = ignore_mean
+
     if start_day is None:
         ephem_now = ephem.now()
         t_start = ephem.julian_date(ephem_now)
@@ -269,16 +265,17 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     else:
         obs_start = t_start
     # Specify 100 points per period
-    num_cycles = ((t_start + params["period"] * cycle_fraction) - np.min([t_start, obs_start])) / params["period"]
+    num_cycles = ((t_start + host.period * cycle_fraction) - np.min([t_start, obs_start])) / host.period
     num_points = np.ceil(500 * num_cycles)
     if num_points > 10000:
         logging.debug("num points = {}".format(num_points))
         raise ValueError("num_points is to large")
 
-    t_space = np.linspace(min([t_start, obs_start]), t_start + params["period"] * cycle_fraction, num_points)
+    t_space = np.linspace(min([t_start, obs_start]), t_start + host.period * cycle_fraction, num_points)
 
-    host_rvs = RV_from_params(t_space, params, ignore_mean=ignore_mean)
-    companion_rvs = RV_from_params(t_space, params, ignore_mean=ignore_mean, companion=True)
+    # host_rvs = RV_from_params(t_space, params, ignore_mean=ignore_mean)
+    host_rvs = host.rv_at_times(t_space)
+    companion_rvs = companion.rv_at_times(t_space)
 
     fig = plt.figure(figsize=(10, 7))
     fig.subplots_adjust()
@@ -289,60 +286,51 @@ def RV_time_curve(params, cycle_fraction=1, ignore_mean=False, t_past=False, t_f
     if (start_dt.hour == 0) and (start_dt.minute == 0) and (start_dt.second == 0):
         start_string = datetime.strftime(start_dt, "%Y-%m-%d")
     else:
-        start_string = datetime.strftime(start_dt, "%Y-%m-%d %H:%M:%S")   # Issue with 00:00:01 not appearing
+        start_string = datetime.strftime(start_dt, "%Y-%m-%d %H:%M:%S")  # Issue with 00:00:01 not appearing
     ax1.set_xlabel("Days from {!s}".format(start_string))
 
     ax1.set_ylabel("Host RV (km/s)")
 
     ax2 = ax1.twinx()
-    if params["true_mass_flag"]:
-        ax2.plot(t_space - t_start, companion_rvs, '--', label="M_2 Companion", lw=2)
-    else:
-        ax2.plot(t_space - t_start, companion_rvs, '--', label="M_2sini Companion", lw=2)
+    companion_label = generate_companion_label(companion)
+    ax2.plot(t_space - t_start, companion_rvs, '--', label=companion_label, lw=2)
     ax2.set_ylabel("Companion RV (km/s)")
 
-    if 'name' in params.keys():
-        if "companion" in params.keys():
-            plt.title("Radial Velocity Curve for {} {}".format(params['name'].upper(), params['companion']))
+    if 'name' in host._params.keys():
+        if "companion" in host._params.keys():
+            plt.title("Radial Velocity Curve for {} {}".format(host._params['name'].upper(), host._params['companion']))
         else:
-            plt.title("Radial Velocity Curve for {}".format(params['name'].upper()))
+            plt.title("Radial Velocity Curve for {}".format(host._params['name'].upper()))
     else:
         plt.title("Radial Velocity Curve")
     if t_past is not None:
         t_past = np.asarray(t_past)
-        # for t_num, t_val in enumerate(t_past):
-        rv_star = RV_from_params(t_past, params, ignore_mean=False)
-        rv_planet = RV_from_params(t_past, params, ignore_mean=False, companion=True)
-        ax1.plot(t_past - t_start, rv_star, ".", markersize=10, markeredgewidth=2, label="Host Obs")
-        ax2.plot(t_past - t_start, rv_planet, "+", markersize=10, markeredgewidth=2, label="Comp Obs")
+        rv_star = host.rv_at_times(t_past)
+        rv_planet = companion.rv_at_times(t_past)
+        ax1.plot(t_past - t_start, rv_star, "b.", markersize=10, markeredgewidth=2, label="Host Obs")
+        ax2.plot(t_past - t_start, rv_planet, "r+", markersize=10, markeredgewidth=2, label="Comp Obs")
 
     if t_future:
-        raise NotImplementedError("Adding future observations times is not implemented yet.")
-    # if t_future:
-    #     for t_num, t_val in enumerate(t_future):
-    #         phi = ((t_val - params[4])/params[5] - 0.5) % 1 + 0.5
-    #         rv_star = RV_from_params(t_val, params, ignore_mean=False)
-    #         rv_planet = RV_from_params(t_val, params, ignore_mean=False, companion=True)
-    #         ax1.plot(phi, rv_star, "+", markersize=12, markeredgewidth=3)
-    #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
+        t_past = np.asarray(t_future)
+        rv_star = host.rv_at_times(t_future)
+        rv_planet = companion.rv_at_times(t_future)
+        ax1.plot(t_future - t_start, rv_star, "ko", markersize=10, markeredgewidth=2, label="Host Obs")
+        ax2.plot(t_future - t_start, rv_planet, "g*", markersize=10, markeredgewidth=2, label="Comp Obs")
+    # raise NotImplementedError("Adding future observations times is not implemented yet.")
 
     # Determine rv max amplitudes.
-    a_1 = params["k1"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    b_1 = params["k1"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    amp1 = max([abs(a_1), abs(b_1)])
-
-    a_2 = params["k2"] * (1 + params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    b_2 = params["k2"] * (1 - params["eccentricity"] * np.cos(params["omega"] * np.pi / 180))
-    amp2 = max([abs(a_2), abs(b_2)])
+    amp1 = host.max_amp()
+    amp2 = companion.max_amp()
 
     # Adjust axis limits
-    ax1.set_ylim(params["mean_val"] - (amp1 * 1.1), params["mean_val"] + (amp1 * 1.1))
-    ax2.set_ylim(params["mean_val"] - (amp2 * 1.1), params["mean_val"] + (amp2 * 1.1))
+    ax1.set_ylim(host.gamma - (amp1 * 1.1), host.gamma + (amp1 * 1.1))
+    ax2.set_ylim(companion.gamma - (amp2 * 1.1), companion.gamma + (amp2 * 1.1))
 
-    ax1.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
-    ax2.axhline(params["mean_val"], color="black", linestyle="-.", alpha=0.5)
+    ax1.axhline(host.gamma, color="black", linestyle="-.", alpha=0.5)
+    ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
 
     plt.legend(loc=0)
+
     return fig
 
 
