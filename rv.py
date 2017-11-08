@@ -65,24 +65,13 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
     date: str
         Reference date for some modes. Defaults=None)
     """
-    only_msini = False
+
     # Load in params and store as a dictionary
     parameters = parse_paramfile(params)
 
-    # Convert msun to jupyter masses
-    parameters["m1"] = parameters["m1"] * M_sun / M_jup
+    parameters = prepare_mass_params(parameters, only_msini=True)
 
-    # Test of core parameters
-    for key in ["name", "k1", "eccentricity", "omega", "tau", "period"]:
-        if key not in parameters.keys():
-            raise ValueError("A core parameter was not provided in param file, '{}'".format(key))
-
-    if "mean_val" not in parameters.keys():
-        logging.info("mean_val parameter was not provided so set to 0 km/s")
-        parameters["mean_val"] = 0.0
-    elif parameters["mean_val"] == "":
-        logging.info("mean_val parameter was blank so set to 0 km/s")
-        parameters["mean_val"] = 0.0
+    parameters = check_core_parameters(parameters)
 
     # combine obs_times and obs_list and turn into jd.
     if obs_times:
@@ -96,25 +85,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
     if mode in ("error", "indiv"):
         pass
     else:
-        if "k2" in parameters.keys():
-            pass
-        else:
-            if ('m_true' in parameters.keys()) and not only_msini:
-                # Use true mass if given
-                if not parameters["m_true"] == "":
-                    mass_used = parameters['m_true']
-                    true_mass_flag = True  # parameter to indicate if the true mass was used or not
-                else:
-                    mass_used = parameters["msini"]
-                    true_mass_flag = False
-            else:
-                mass_used = parameters["msini"]
-                true_mass_flag = False
-
-            parameters['k2'] = companion_amplitude(parameters['k1'],
-                                                   parameters['m_star'],
-                                                   mass_used)
-            parameters["true_mass_flag"] = true_mass_flag  # True if true mass used
+        pass
 
     host_orbit = RV.from_dict(parameters)
     companion_orbit = host_orbit.create_companion()

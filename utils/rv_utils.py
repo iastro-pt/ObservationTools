@@ -4,6 +4,7 @@ import logging
 from typing import Any, Dict
 
 import numpy as np
+from astropy.constants import M_sun, M_jup
 
 from utils.parse import parse_obslist
 from utils.parse import parse_paramfile
@@ -74,11 +75,12 @@ class RV(object):
             Rv object for the companion.
         """
         params = copy.copy(self._params)
-
         if mass_ratio is not None:
             k2 = -params["k1"] * mass_ratio
+            params["ratio_flag"] = True
         elif params.get("k2") is not None:
             k2 = params.get("k2")
+            params["k2_flag"] = True
         else:
             # Make from masses in parameters
             M1 = params.get("m1")
@@ -536,3 +538,54 @@ def join_times(obs_times=None, obs_list=None):
         return None
     else:
         return obs_times
+
+
+def prepare_mass_params(params, only_msini=True):
+    """Update parameter dictionary to set m1 and m2 if not given."""
+    if params.get("m1") is None:
+        params["m1"] = params["m_sun"]  # solar mass
+
+    # Convert m-sun to jupyter masses
+    params["m1"] = params["m1"] * M_sun / M_jup  # jupyter mass
+
+    if params.get("m2") is None:
+        params["m2"] = params["m_sini"] if only_msini else params["m_true"]
+        # should give a key error if the correct mass not given
+
+    params["msini_flag"] = only_msini
+
+    params["k2_flag"] = False if params.get("k2") is None else True
+
+    return params
+
+
+def check_core_parameters(params):
+    """Test core rv parameters."""
+    for key in ["name", "k1", "eccentricity", "omega", "tau", "period"]:
+        if key not in params.keys():
+            raise ValueError("A core parameter was not provided in the param file, '{}'".format(key))
+
+    if "mean_val" not in params.keys():
+        logging.info("mean_val parameter was not provided so set to 0 km/s")
+        params["mean_val"] = 0.0
+    elif params["mean_val"] == "":
+        logging.info("mean_val parameter was blank so set to 0 km/s")
+        params["mean_val"] = 0.0
+
+    return params
+
+
+def generate_companion_label(companion):
+    msini_flag = companion._params.get("msini_flag", False)
+    k2_flag = companion._params.get("k2_flag", False)
+    ratio_flag = companion._params.get("ratio_flag", False)
+
+    if not msini_flag and not k2_flag and not "ratio_flag":
+        label = "M2 Companion"
+    elif msini_flag and not k2_flag and not ratio_flag:
+        label = "M2sini Companion"
+    elif k2_flag and not ratio_flag:
+        label = "Given k2 Companion"
+    else:
+        label = "Mass ratio Companion"
+    return label
