@@ -116,7 +116,6 @@ def test_create_companion_with_k2(k2):
     assert companion._params["k1"] == companion.semi_amp
 
 
-# (Msun, Mjup)
 @pytest.mark.parametrize("semi_amp, mass_ratio", [
     (1, 5.0), (0.8, 10), (10.2, 1024)])
 def test_create_companion_with_mass_ratio(semi_amp, mass_ratio):

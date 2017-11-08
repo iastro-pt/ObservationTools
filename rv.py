@@ -15,18 +15,12 @@ import astropy.units as u
 import ephem
 import matplotlib.pyplot as plt
 import numpy as np
-from astropy.constants import c, M_sun, M_jup
+from astropy.constants import c
 from mpl_toolkits.axes_grid1 import host_subplot
 
 from utils.parse import parse_paramfile
-from utils.rv_utils import RV, JulianDate
-from utils.rv_utils import companion_amplitude, RV_from_params, strtimes2jd, join_times
-
-# try:
-#     from ajplanet import pl_rv_array
-#     use_ajplanet = False
-# except:
-#     use_ajplanet = False
+from utils.rv_utils import RV, JulianDate, prepare_mass_params
+from utils.rv_utils import strtimes2jd, join_times, check_core_parameters
 
 c_km_s = c.to(u.kilometer / u.second)  # Speed of light in km/s
 
@@ -46,7 +40,7 @@ def _parser():
     # parser.add_argument('-f', '--files', help='Params and obs-times are file'
     #                    ' names to open', action='store_true')
     parser.add_argument('-m', '--mode', help='Display mode '
-                        ' e.g. phase or time plot. Default="phase"',
+                                             ' e.g. phase or time plot. Default="phase"',
                         choices=['phase', 'time'], default='phase', type=str)
     parser.add_argument("--save_only", help="Only save the figure, do not show it.", action="store_true")
     parser.add_argument("--debug", help="Turning on debug output", action='store_true', default=False)
@@ -71,7 +65,6 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
     date: str
         Reference date for some modes. Defaults=None)
     """
-    # only_msini = True   # Use only the msini values not m_true.
     only_msini = False
     # Load in params and store as a dictionary
     parameters = parse_paramfile(params)
@@ -97,7 +90,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
             raise ValueError("Filename given instead of dates for obs_times.")
 
     obs_times = join_times(obs_times, obs_list)
-    obs_jd = strtimes2jd(obs_times)  # , reduced=True
+    obs_jd = strtimes2jd(obs_times)
 
     # Calculate companion semi-major axis
     if mode in ("error", "indiv"):

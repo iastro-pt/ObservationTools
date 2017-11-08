@@ -9,28 +9,17 @@ from hypothesis import strategies as st
 import rv
 from utils.rv_utils import JulianDate
 from utils.rv_utils import RV_from_params
+from utils.rv_utils import strtimes2jd
 
 
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_radial_velocity():
     assert False
 
 
-# def radial_velocity(gamma, k, ta, omega, ecc):
-#     # Calculate radial velocity of star
-#     return gamma + k * (np.cos(ta + omega) + ecc * np.cos(omega))
-
-
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_rv_curve():
     assert False
-
-
-# def rv_curve_py(times, gamma, k, omega, ecc, t0, period):
-#     ma = RV.mean_anomaly(times, t0, period)
-#     ta = RV.true_anomaly(ma, ecc)
-#     rv = radial_velocity(gamma, k, ta, omega, ecc)
-#     return rv
 
 
 @pytest.fixture(params=["tests/test_params.txt"])
@@ -187,23 +176,23 @@ def test_JulianDate_reduce_datetime(date, expected):
     assert np.allclose(jd.jd, ephem.julian_date(d) - 2400000)
 
 
-@pytest.mark.parametrize("juliandate, expected", [
+@pytest.mark.parametrize("julian_date, expected", [
     (2455969.979977, 55969.979977),
     (2448141.333333, 48141.333333)])
-def test_JulianDate_reduce_jd(juliandate, expected):
-    jd = JulianDate(juliandate)
-    assert jd.jd == juliandate
+def test_JulianDate_reduce_jd(julian_date, expected):
+    jd = JulianDate(julian_date)
+    assert jd.jd == julian_date
     assert not jd.reduced
     jd.reduce()
     assert jd.reduced
     assert np.allclose(jd.jd, expected)
 
 
-@pytest.mark.parametrize("expected, juliandate", [
+@pytest.mark.parametrize("expected, julian_date", [
     ((2012, 2, 12, 11, 31, 10), 2455969.979977),
     ((1990, 9, 6, 20), 2448141.333333)])
-def test_JulianDate_reduce_jd_to_datetime(expected, juliandate):
-    jd = JulianDate(juliandate)
+def test_JulianDate_reduce_jd_to_datetime(expected, julian_date):
+    jd = JulianDate(julian_date)
     jd.reduce()
     assert abs(jd.to_datetime() - datetime.datetime(*expected)) < datetime.timedelta(seconds=1)
 
@@ -225,9 +214,6 @@ def test_JulianDate_from_str_to_datetime(datestr, dtime):
     assert abs(jd.to_datetime() - datetime.datetime(*dtime)) < datetime.timedelta(seconds=1)
 
 
-from utils.rv_utils import strtimes2jd
-
-
 @pytest.mark.parametrize("obstimes, expected",
                          [(["2012-01-05", "2014-04-08"], [2455931.5, 2456755.5]), (["1999-04-08"], [2451276.5]),
                           ("1999-04-08", 2451276.5)])
@@ -240,7 +226,7 @@ def test_strtimes2jd(obstimes, expected):
     (2455931.5, "2012-01-05"),
     (2451276.5, "1999-04-08")
 ])
-def test_juliandate_to_str(input, expected):
+def test_julian_date_to_str(input, expected):
     jd = JulianDate(input)
     format = "%Y-%m-%d"
     assert jd.to_str(format) == expected
@@ -249,9 +235,8 @@ def test_juliandate_to_str(input, expected):
 @pytest.mark.parametrize("input", [
     2456755.5,
     2455931.5,
-    2451276.5
-])
-def test_juliandate_to_and_frm_str_starting_from_jd(input):
+    2451276.5])
+def test_julian_date_to_and_frm_str_starting_from_jd(input):
     assert JulianDate.from_str(JulianDate(input).to_str()).jd == input
 
 
@@ -260,5 +245,5 @@ def test_juliandate_to_and_frm_str_starting_from_jd(input):
     ("2012-01-05", "%Y-%m-%d"),
     ("1999-04-08 12:10:30", "%Y-%m-%d %H:%M:%S")
 ])
-def test_juliandate_to_and_frm_str_starting_from_str(input, format):
+def test_julian_date_to_and_frm_str_starting_from_str(input, format):
     assert JulianDate.from_str(input, format).to_str(format) == input
