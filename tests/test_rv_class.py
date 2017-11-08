@@ -75,8 +75,10 @@ def test_true_anomaly_errors(ecc):
         RV.true_anomaly(np.array([]), ecc)
 
 
-@given(st.lists(st.floats(), min_size=1), st.floats(), st.floats(min_value=0.01))
-def test_mean_anomaly(t, t0, p):
+@given(st.lists(st.floats(min_value=1, max_value=3e6), min_size=1),
+       st.floats(min_value=0, max_value=3e6),
+       st.floats(min_value=0.01, max_value=1e6))
+def test_mean_anomaly_shape(t, t0, p):
     """Mean anomaly is an angle, doesn't have a constraint value."""
     t = np.array(t)
     ma = RV.mean_anomaly(t, t0, p)
