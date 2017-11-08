@@ -12,12 +12,12 @@ from utils.rv_utils import RV_from_params
 from utils.rv_utils import strtimes2jd
 
 
-# @pytest.mark.xfail
+@pytest.mark.xfail
 def test_radial_velocity():
     assert False
 
 
-# @pytest.mark.xfail
+@pytest.mark.xfail
 def test_rv_curve():
     assert False
 

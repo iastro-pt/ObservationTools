@@ -182,3 +182,10 @@ def test_param_from_dict_and_to_dict_give_the_same_dict():
 
     rv2 = RV.from_dict(rv1_params)
     assert rv2 == rv1
+
+def test__repr__():
+    rv = RV(semi_amp=1.0, period=1, omega=35, k2=7, m1=0.81, tau=3561.51)
+    assert isinstance(rv.__repr__(), str)
+    assert rv.__repr__() == "RV(semi_amp=1.0, period=1, ecc=0.0, tau=3561.51, omega=35, gamma=0.0, k2=7, m1=0.81)"
+
+    assert RV().__repr__() == "RV(semi_amp=0.0, period=0.0, ecc=0.0, tau=0.0, omega=0.0, gamma=0.0)"

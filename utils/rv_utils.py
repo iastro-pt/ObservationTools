@@ -28,9 +28,14 @@ class RV(object):
             self._params.update(other_params)
 
     def __repr__(self):
-        return "RV(semi_amp={1}, period={2}, ecc={3}, tau={4}, omega={5}, gamma={6}, **{7})".format(
-            self.__class__, self.semi_amp, self.period, self.ecc, self.tau, self.omega, self.gamma, self._params)
+        other_params = ""
+        for key, value in self._params.items():
+            if key not in ["k1", "eccentricity", "period", "mean_val", "tau", "omega"]:
+                other_params += ", {}={}".format(key, value)
 
+        return "RV(semi_amp={1}, period={2}, ecc={3}, tau={4}, omega={5}, gamma={6}{7})".format(
+            self.__class__, self.semi_amp, self.period, self.ecc, self.tau, self.omega, self.gamma, other_params)
+    
     def orbit_dict(self):
         return {"k1": self.semi_amp, "period": self.period, "eccentricity": self.ecc,
                 "tau": self.tau, "mean_val": self.gamma, "omega": self.omega}
