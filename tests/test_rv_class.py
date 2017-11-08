@@ -56,7 +56,7 @@ def test_rv_class_max_amp_on_elipse(semi_amp, period, ecc, tau, gamma, omega, ex
     assert rv.max_amp() == expected_amp
 
 
-@given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0, max_value=1))
+@given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0.001, max_value=0.999))
 @example(2, 0.5)  # example with an integer
 def test_true_anomaly_with_scalar(ma, ecc):
     assume(abs(ma) > 0.001)
@@ -75,8 +75,10 @@ def test_true_anomaly_errors(ecc):
         RV.true_anomaly(np.array([]), ecc)
 
 
-@given(st.lists(st.floats(), min_size=1), st.floats(), st.floats(min_value=0.01))
-def test_mean_anomaly(t, t0, p):
+@given(st.lists(st.floats(min_value=1, max_value=3e6), min_size=1),
+       st.floats(min_value=0, max_value=3e6),
+       st.floats(min_value=0.01, max_value=1e6))
+def test_mean_anomaly_shape(t, t0, p):
     """Mean anomaly is an angle, doesn't have a constraint value."""
     t = np.array(t)
     ma = RV.mean_anomaly(t, t0, p)
@@ -85,7 +87,7 @@ def test_mean_anomaly(t, t0, p):
     assert isinstance(t, np.ndarray)
 
 
-@given(st.lists(st.floats(min_value=0, max_value=np.pi), min_size=1), st.floats(min_value=0, max_value=1))
+@given(st.lists(st.floats(min_value=0, max_value=np.pi), min_size=1), st.floats(min_value=0.001, max_value=0.9999))
 def test_true_anomaly(ma, ecc):
     ma = np.asarray(ma)
     assume(np.all(np.abs(ma) > 0.0001))
