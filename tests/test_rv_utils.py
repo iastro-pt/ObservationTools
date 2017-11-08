@@ -3,7 +3,7 @@ import datetime
 import ephem
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 import rv
@@ -51,6 +51,7 @@ def test_RV_from_params_circular(params):
 
 
 # mean_val k1 period tau omega eccentricity
+#@settings(deadline=400)  # double deadline for this test
 @given(st.floats(min_value=0, max_value=1e6, allow_nan=False, allow_infinity=False),
        st.floats(min_value=0.1, max_value=1e5, allow_nan=False, allow_infinity=False),
        st.floats(min_value=0.1, max_value=1e6, allow_nan=False, allow_infinity=False),
