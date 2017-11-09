@@ -7,10 +7,10 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 import rv
-from utils.rv_utils import JulianDate
+from utils.rv_utils import JulianDate, check_core_parameters, RV, generate_companion_label, prepare_mass_params
 from utils.rv_utils import RV_from_params
 from utils.rv_utils import strtimes2jd
-
+from astropy.constants import M_sun, M_jup
 
 @pytest.mark.xfail
 def test_radial_velocity():
@@ -248,3 +248,99 @@ def test_julian_date_to_and_frm_str_starting_from_jd(input):
 ])
 def test_julian_date_to_and_frm_str_starting_from_str(input, format):
     assert JulianDate.from_str(input, format).to_str(format) == input
+
+
+@pytest.mark.parametrize("removed", [
+    "name", "k1", "eccentricity", "omega", "tau", "period"])
+def test_check_error_when_core_param_missing(removed):
+    params = {"name": "test", "k1": 100, "eccentricity": 0.5, "omega": 20,
+              "mean_val": 5, "tau": 5000, "period": 1}
+    params.pop(removed)
+
+    with pytest.raises(ValueError):
+        check_core_parameters(params)
+
+
+def test_missing_mean_val_is_set_zero_in_check_core_param():
+    params_1 = {"name": "test", "k1": 100, "eccentricity": 0.5,
+                "omega": 20, "tau": 5000, "period": 1}
+    params_2 = params_1.copy()
+    assert params_1.get("mean_val") is None
+    params_1 = check_core_parameters(params_1)
+    assert params_1["mean_val"] == 0.0
+
+    params_2.update({"mean_val": ""})
+    assert params_2["mean_val"] == ""
+    params_2 = check_core_parameters(params_2)
+    assert params_2["mean_val"] == 0.0
+
+
+@pytest.mark.parametrize("msini_flag, k2_flag, ratio_flag, expected", [
+    (True, True, True, "Mass ratio Companion"),
+    (True, True, False, "Given k2 Companion"),
+    (True, False, False, "M2sini Companion"),
+    (False, False, False, "M2 Companion"),
+    (False, True, False, "Given k2 Companion"),
+    (False, True, True, "Mass ratio Companion"),
+    (False, False, True, "Mass ratio Companion"),
+])
+def test_generate_companion_label(msini_flag, k2_flag, ratio_flag, expected):
+    orbit = RV(msini_flag=msini_flag, k2_flag=k2_flag, ratio_flag=ratio_flag)
+    assert generate_companion_label(orbit) == expected
+
+
+def test_companion_label_with_no_flags():
+    assert generate_companion_label(RV()) == "M2 Companion"
+
+
+@pytest.mark.parametrize("only_msini", [True, False])
+def test_prepare_mass_params_sets_msini_flag(only_msini):
+    params = {"m_sini": 20, "m_sun": 0.8, "m_true":35}
+    assert prepare_mass_params(params, only_msini=only_msini)["msini_flag"] == only_msini
+
+
+def test_prepare_mass_params_with_no_m1():
+    params = {"m_sini": 20, "m_sun": 0.8, "m_true": 80}
+
+    params = prepare_mass_params(params)
+    assert params["m1"] == params["m_sun"] * M_sun / M_jup
+
+
+@pytest.mark.parametrie("k2, expected", [
+    (None, False),
+    (1, True)])
+def test_prepare_mass_params_with_k2_param(k2, expected):
+    params = {"k2": k2, "m_sini": 20, "m_sun": 0.8, "m_true": 80}
+    assert params.get("k2_flag") is None
+    prepare_mass_params(params)
+    assert params.get("k2_flag") == expected
+
+
+@pytest.mark.parametrize("m2", [5, 10 ,20])
+def test_prepare_mass_params_with_m2(m2):
+    """M2 does not change if given."""
+    params = {"m2": m2, "m_sini": 20, "m_sun": 0.8, "m_true": 80}
+    assert params["m2"] == m2
+
+    params = prepare_mass_params(params)
+    assert params["m2"] == m2
+
+
+def test_prepare_mass_params_with_msni_m2():
+    params = {"m_sini": 20, "m_sun": 0.8, "m_true": 80}
+    params = prepare_mass_params(params, only_msini=True)
+    assert params["m2"] == params["m_sini"]
+    assert params["msini_flag"] is True
+
+
+def test_prepare_mass_params_with_m_true_m2():
+    params = {"m_sini": 20, "m_sun": 0.8, "m_true": 80}
+    params = prepare_mass_params(params, only_msini=False)
+    assert params["m2"] == params["m_true"]
+    assert params["msini_flag"] is False
+
+
+def test_prepare_mass_params_scales_m1_to_jup_mass():
+    params = {"m1": 1., "m2": 0}
+    params = prepare_mass_params(params)
+    assert params["m1"] == M_sun / M_jup

@@ -4,11 +4,9 @@ import logging
 from typing import Any, Dict
 
 import numpy as np
-from astropy.constants import M_sun, M_jup
+from astropy.constants import M_jup, M_sun
 
-from utils.parse import parse_obslist
-from utils.parse import parse_paramfile
-
+from utils.parse import parse_obslist, parse_paramfile
 
 # TODO: Replace "Any" with numpy type hint when available
 
@@ -550,7 +548,7 @@ def prepare_mass_params(params, only_msini=True):
     if params.get("m1") is None:
         params["m1"] = params["m_sun"]  # solar mass
 
-    # Convert m-sun to jupyter masses
+    # Convert m_sun to jupyter masses
     params["m1"] = params["m1"] * M_sun / M_jup  # jupyter mass
 
     if params.get("m2") is None:
@@ -585,7 +583,7 @@ def generate_companion_label(companion):
     k2_flag = companion._params.get("k2_flag", False)
     ratio_flag = companion._params.get("ratio_flag", False)
 
-    if not msini_flag and not k2_flag and not "ratio_flag":
+    if not msini_flag and not k2_flag and not ratio_flag:
         label = "M2 Companion"
     elif msini_flag and not k2_flag and not ratio_flag:
         label = "M2sini Companion"
@@ -593,4 +591,5 @@ def generate_companion_label(companion):
         label = "Given k2 Companion"
     else:
         label = "Mass ratio Companion"
+
     return label
