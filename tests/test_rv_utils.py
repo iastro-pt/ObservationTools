@@ -306,7 +306,7 @@ def test_prepare_mass_params_with_no_m1():
     assert params["m1"] == params["m_sun"] * M_sun / M_jup
 
 
-@pytest.mark.parametrie("k2, expected", [
+@pytest.mark.parametrize("k2, expected", [
     (None, False),
     (1, True)])
 def test_prepare_mass_params_with_k2_param(k2, expected):

@@ -189,3 +189,14 @@ def test__repr__():
     assert rv.__repr__() == "RV(semi_amp=1.0, period=1, ecc=0.0, tau=3561.51, omega=35, gamma=0.0, k2=7, m1=0.81)"
 
     assert RV().__repr__() == "RV(semi_amp=0.0, period=0.0, ecc=0.0, tau=0.0, omega=0.0, gamma=0.0)"
+
+
+@pytest.mark.parametrize("center, npoints", [(0, 100), (0.5, 150)])
+def test_full_phase(center, npoints):
+    params = {"semi_amp": 1, "period": 15, "tau": 2400000, "omega":0, "ecc": 0.1}
+    rv1 = RV(**params).rv_full_phase(center, npoints)
+    rv2 = RV(**params).rv_full_phase(center + 1, npoints)
+
+    assert len(rv1) == npoints
+    assert np.allclose(rv1, rv2)
+    assert np.allclose(rv1[0], rv1[-1])
