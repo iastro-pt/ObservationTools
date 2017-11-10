@@ -193,7 +193,7 @@ def test__repr__():
 
 @pytest.mark.parametrize("center, npoints", [(0, 100), (0.5, 150)])
 def test_full_phase(center, npoints):
-    params = {"semi_amp": 1, "period": 15, "tau": 2400000, "omega":0, "ecc": 0.1}
+    params = {"semi_amp": 1, "period": 15, "tau": 2400000, "omega": 0, "ecc": 0.1}
     rv1 = RV(**params).rv_full_phase(center, npoints)
     rv2 = RV(**params).rv_full_phase(center + 1, npoints)
 
@@ -216,3 +216,25 @@ def test_RV_can_handle_ignore_mean_as_input(ignore):
     assert rv.ignore_mean == ignore
     assert rv._params["ignore_mean"] == ignore
     assert "ignore_mean" in rv.to_dict().keys()
+
+
+def test_RV_to_dict_updates_parameters_in_params():
+    rv = RV(semi_amp=1.0, period=3, tau=4, omega=5, ecc=0.5, mean_val=8, ignore_mean=True)
+    assert rv.ignore_mean == True
+    assert rv._params["ignore_mean"] == True
+    assert rv.semi_amp == 1.0
+
+    # _params not updated (yet)
+    rv.semi_amp = 2
+    rv.ignore_mean = False
+    assert rv._params["k1"] == 1
+    assert rv._params["ignore_mean"] == True
+    assert rv.ignore_mean == False
+
+    # RV.to_dict() updates _params
+    param_dict = rv.to_dict()
+    assert param_dict["ignore_mean"] == False
+    assert rv._params["ignore_mean"] == False
+    assert rv.semi_amp == 2
+    assert param_dict["k1"] == 2
+    assert rv._params["k1"] == 2

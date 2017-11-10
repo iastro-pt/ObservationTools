@@ -40,8 +40,8 @@ class RV(object):
                 "tau": self.tau, "mean_val": self.gamma, "omega": self.omega}
 
     def to_dict(self):
-        # TODO: Update _params with orbit_dict incase of changes?
-        # return self._params.update(self.orbit_dict())
+        self._params.update(self.orbit_dict())
+        self._params.update({"ignore_mean": self.ignore_mean})
         return self._params
 
     @classmethod
