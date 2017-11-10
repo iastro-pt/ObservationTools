@@ -208,6 +208,12 @@ def test_full_phase(center, npoints):
     assert np.allclose(rv1, rv2)
     assert np.allclose(rv1[0], rv1[-1])
 
+
+def test_anomaly_gives_runtime_error():
+    with pytest.raises(RuntimeError):
+        RV.true_anomaly(0.0000001, 0.9999999999999999999)
+
+
 def test_set_ignore_mean():
     rv = RV()
     assert rv.ignore_mean is False
