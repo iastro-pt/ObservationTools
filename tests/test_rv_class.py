@@ -200,3 +200,19 @@ def test_full_phase(center, npoints):
     assert len(rv1) == npoints
     assert np.allclose(rv1, rv2)
     assert np.allclose(rv1[0], rv1[-1])
+
+def test_set_ignore_mean():
+    rv = RV()
+    assert rv.ignore_mean is False
+    rv.ignore_mean = True
+    assert rv.ignore_mean is True
+    rv.ignore_mean = False
+    assert rv.ignore_mean is False
+
+
+@pytest.mark.parametrize("ignore", [False, True])
+def test_RV_can_handle_ignore_mean_as_input(ignore):
+    rv = RV(ignore_mean=ignore)
+    assert rv.ignore_mean == ignore
+    assert rv._params["ignore_mean"] == ignore
+    assert "ignore_mean" in rv.to_dict().keys()

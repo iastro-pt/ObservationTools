@@ -22,6 +22,7 @@ class RV(object):
         self.omega = omega
         self._params = self.orbit_dict()
 
+        self.ignore_mean = other_params.get("ignore_mean", False)
         if other_params is not None:
             self._params.update(other_params)
 
@@ -104,8 +105,10 @@ class RV(object):
 
     @property
     def ignore_mean(self):
-        return self._ignore_mean
-
+        try:
+            return self._ignore_mean
+        except AttributeError:
+            return False
     @ignore_mean.setter
     def ignore_mean(self, value=None):
         if value is None:
