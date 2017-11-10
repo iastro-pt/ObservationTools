@@ -191,6 +191,12 @@ def test__repr__():
     assert RV().__repr__() == "RV(semi_amp=0.0, period=0.0, ecc=0.0, tau=0.0, omega=0.0, gamma=0.0)"
 
 
+def test_companion_without_mass_gives_errors():
+    rv = RV()
+    with pytest.raises(ValueError):
+        # Needs mass parameters
+        rv.create_companion()
+
 @pytest.mark.parametrize("center, npoints", [(0, 100), (0.5, 150)])
 def test_full_phase(center, npoints):
     params = {"semi_amp": 1, "period": 15, "tau": 2400000, "omega": 0, "ecc": 0.1}

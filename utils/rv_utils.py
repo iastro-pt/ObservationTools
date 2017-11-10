@@ -371,7 +371,7 @@ def companion_amplitude(k_host, m_host, m_companion):
         RV amplitude of companion.
 
     """
-    sun_jupiter_mass = 1047.56  # Solar mass in jupiter masses
+    sun_jupiter_mass = (M_sun / M_jup).value  # Solar mass in jupiter masses
     m_host *= sun_jupiter_mass  # Convert to jupiter mass
     return -k_host * m_host / m_companion
 
@@ -426,8 +426,6 @@ class JulianDate(object):
         print("self.jd", self.jd)
         if self.reduced:
             _jd = self.jd + self.reduce_jd
-            if _jd > 3000000:
-                logging.warning("The julian date is {} > 300000, is this correct".format(_jd))
         else:
             _jd = self.jd
         print("_jd", _jd)
@@ -454,7 +452,7 @@ class JulianDate(object):
         dt = datetime.datetime.strptime(time_str, format)
         return cls.from_datetime(dt)
 
-    def to_str(self, format=strformat):
+    def to_str(self, format=None):
         """Return date string from a JulianDate.
 
         Input

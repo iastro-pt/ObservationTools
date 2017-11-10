@@ -3,14 +3,16 @@ import datetime
 import ephem
 import numpy as np
 import pytest
+from astropy.constants import M_jup, M_sun
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 import rv
-from utils.rv_utils import JulianDate, check_core_parameters, RV, generate_companion_label, prepare_mass_params
-from utils.rv_utils import RV_from_params
-from utils.rv_utils import strtimes2jd
-from astropy.constants import M_sun, M_jup
+from utils.rv_utils import (RV, JulianDate, RV_from_params,
+                            check_core_parameters, companion_amplitude,
+                            generate_companion_label, prepare_mass_params,
+                            strtimes2jd)
+
 
 @pytest.mark.xfail
 def test_radial_velocity():
@@ -222,6 +224,18 @@ def test_strtimes2jd(obstimes, expected):
     assert strtimes2jd(obstimes, format="%Y-%m-%d") == expected
 
 
+@pytest.mark.parametrize("obstimes, expected",
+                         [(["2012-01-05", "2014-04-08"], [55931.5, 56755.5]),
+                          (["1999-04-08"], [51276.5]),
+                          ("1999-04-08", 51276.5)])
+def test_strtimes2jd_with_reduce(obstimes, expected):
+    assert strtimes2jd(obstimes, reduced=True, format="%Y-%m-%d") == expected
+
+
+def test_strtimes2jd_with_None():
+    assert strtimes2jd(None) == None
+
+
 @pytest.mark.parametrize("input, expected", [
     (2456755.5, "2014-04-08"),
     (2455931.5, "2012-01-05"),
@@ -295,7 +309,7 @@ def test_companion_label_with_no_flags():
 
 @pytest.mark.parametrize("only_msini", [True, False])
 def test_prepare_mass_params_sets_msini_flag(only_msini):
-    params = {"m_sini": 20, "m_sun": 0.8, "m_true":35}
+    params = {"m_sini": 20, "m_sun": 0.8, "m_true": 35}
     assert prepare_mass_params(params, only_msini=only_msini)["msini_flag"] == only_msini
 
 
@@ -316,7 +330,7 @@ def test_prepare_mass_params_with_k2_param(k2, expected):
     assert params.get("k2_flag") == expected
 
 
-@pytest.mark.parametrize("m2", [5, 10 ,20])
+@pytest.mark.parametrize("m2", [5, 10, 20])
 def test_prepare_mass_params_with_m2(m2):
     """M2 does not change if given."""
     params = {"m2": m2, "m_sini": 20, "m_sun": 0.8, "m_true": 80}
@@ -344,3 +358,11 @@ def test_prepare_mass_params_scales_m1_to_jup_mass():
     params = {"m1": 1., "m2": 0}
     params = prepare_mass_params(params)
     assert params["m1"] == M_sun / M_jup
+
+
+@given(st.floats(allow_nan=False, allow_infinity=False),
+       st.floats(min_value=0.01, allow_nan=False, allow_infinity=False),
+       st.floats(min_value=0.001, allow_nan=False, allow_infinity=False))
+def test_companion_amplitude_function(k1, m1, m2):
+    m_ratio = (M_sun / M_jup).value
+    assert np.allclose(companion_amplitude(k1, m1, m2), (-k1 * m1 * m_ratio / m2))
