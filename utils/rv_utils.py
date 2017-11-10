@@ -162,7 +162,7 @@ class RV(object):
         if not isinstance(ma, (int, float)):
             ea = ma
         else:
-            ea = np.array([ma, ])
+            ea = np.array([ma, ], dtype=np.float)
 
         if isinstance(ea, list):
             raise TypeError("Unsupported type 'list', input a numpy array or an int/float.")
