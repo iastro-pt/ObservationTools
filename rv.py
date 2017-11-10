@@ -8,6 +8,7 @@ Plot radial velocity phase curves. Indicating obtained measurement locations.
 """
 import argparse
 import logging
+import sys
 from datetime import datetime
 from typing import Dict, List, Any, Union
 
@@ -25,14 +26,13 @@ from utils.rv_utils import strtimes2jd, join_times, check_core_parameters
 c_km_s = c.to(u.kilometer / u.second)  # Speed of light in km/s
 
 
-def _parser():
-    # type: () -> argparse.Namespace
+def parse_args(args):
+    # type: List[str] -> argparse.Namespace
     """RV Argparse parser."""
     parser = argparse.ArgumentParser(description='Radial velocity plotting')
     parser.add_argument('params', help='RV parameters filename', type=str)
     parser.add_argument('-d', '--date', default=None,
                         help='Reference date in format YYYY-MM-DD [HH:MM:SS]. Default=None uses time of now.')
-    # pre-predicting parated lines
     # parser.add_argument('-r', '--rv_diff', help='RV difference threshold to find')
     parser.add_argument('-o', '--obs_times', help='Times of previous observations YYYY-MM-DD format',
                         nargs='+', default=None)
@@ -44,7 +44,7 @@ def _parser():
                         choices=['phase', 'time'], default='phase', type=str)
     parser.add_argument("--save_only", help="Only save the figure, do not show it.", action="store_true")
     parser.add_argument("--debug", help="Turning on debug output", action='store_true', default=False)
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
@@ -80,12 +80,6 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
 
     obs_times = join_times(obs_times, obs_list)
     obs_jd = strtimes2jd(obs_times)
-
-    # Calculate companion semi-major axis
-    if mode in ("error", "indiv"):
-        pass
-    else:
-        pass
 
     host_orbit = RV.from_dict(parameters)
     companion_orbit = host_orbit.create_companion()
@@ -306,7 +300,7 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
 
 
 if __name__ == '__main__':
-    args = vars(_parser())
+    args = vars(parse_args(sys.argv[1:]))
     debug = args.pop('debug')
     opts = {k: args[k] for k in args}
 

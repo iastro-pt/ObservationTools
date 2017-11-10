@@ -5,6 +5,7 @@ from hypothesis import strategies as st
 
 import rv
 import utils.rv_utils
+from rv import parse_args
 from utils import parse
 
 
@@ -103,6 +104,7 @@ def test_reduced_strtimes2jd(times, expected_jd):
     jd = utils.rv_utils.strtimes2jd(times, reduced=True)
     assert np.allclose(jd, expected_jd)
 
+
 #
 # @pytest.mark.matlotlib_image_compare
 # def test_default_rv_phase_plot():
@@ -122,3 +124,61 @@ def test_reduced_strtimes2jd(times, expected_jd):
 # @pytest.mark.matlotlib_image_compare
 # def test_rv_time_plot_with_obs():
 #     return rv.main("data/HD30501_params.txt", mode="time")
+
+
+def test_parser():
+    # https://stackoverflow.com/questions/18160078/how-do-you-write-tests-for-the-argparse-portion-of-a-python-module
+    parsed = parse_args(["test/test_params.txt", "-m", "phase"])
+
+    assert parsed.params == "test/test_params.txt"
+    assert parsed.mode == "phase"
+    assert parsed.obs_times == None
+    assert parsed.obs_list == None
+    assert parsed.save_only == False
+    assert parsed.debug == False
+    assert parsed.date == None
+
+
+def test_parser_2():
+    parsed = parse_args(["param_file", "-m", "time", "--save_only", "--debug",
+                      "-l", "obs_list.txt", "-d", "2012-04-15", "-o", "2016-01-14", "2017-06-23"])
+
+    assert parsed.params == "param_file"
+    assert parsed.mode == "time"
+    assert parsed.obs_times == ["2016-01-14", "2017-06-23"]
+    assert parsed.obs_list == "obs_list.txt"
+    assert parsed.save_only == True
+    assert parsed.debug == True
+    assert parsed.date == "2012-04-15"
+
+
+def test_parser_with_invalid_choice(capsys):
+    with pytest.raises(SystemExit):
+        parse_args(["param_file", "-m", "bad_choice"])
+
+
+@pytest.mark.parametrize("arg", ["-d", "--date", "-m", "--mode"])
+def test_parser_with_missing_arg(capsys, arg):
+    with pytest.raises(SystemExit):
+        parse_args(["param_file", arg])
+
+
+@pytest.mark.parametrize("bad_arg", [
+    "save_only",
+    "-save_only",
+    "goop",
+    "-j"
+])
+def test_parser_with_invalid_arg(capsys, bad_arg):
+    with pytest.raises(SystemExit):
+        parse_args(["param_file", bad_arg])
+        # out, err = capsys.readerr
+        # assert "error" in out
+        # assert "invalid mode" in out
+
+
+@pytest.mark.parametrize("bad_arg", [
+    "-debug"])
+def test_parser_with_invalid_arg(capsys, bad_arg):
+    with pytest.raises(AttributeError):
+        parse_args(["param_file", bad_arg])
