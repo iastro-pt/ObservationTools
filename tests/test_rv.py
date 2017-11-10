@@ -176,9 +176,3 @@ def test_parser_with_invalid_arg(capsys, bad_arg):
         # assert "error" in out
         # assert "invalid mode" in out
 
-
-@pytest.mark.parametrize("bad_arg", [
-    "-debug"])
-def test_parser_with_invalid_arg(capsys, bad_arg):
-    with pytest.raises(AttributeError):
-        parse_args(["param_file", bad_arg])
