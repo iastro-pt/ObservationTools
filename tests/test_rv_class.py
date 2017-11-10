@@ -172,7 +172,7 @@ def test_from_dict_works_properly():
 
 def test_param_from_dict_and_to_dict_give_the_same_dict():
     params = {"k1": 10, "eccentricity": 0.5, "period": 5, "mean_val": 4, "tau": 1, "omega": 1,
-              "m1": 4, "m2": 6, "k2": 100, "name": "test"}
+              "m1": 4, "m2": 6, "k2": 100, "name": "test", "ignore_mean": True}
 
     rv1 = RV.from_dict(params)
     rv1_params = rv1.to_dict()
@@ -182,6 +182,7 @@ def test_param_from_dict_and_to_dict_give_the_same_dict():
 
     rv2 = RV.from_dict(rv1_params)
     assert rv2 == rv1
+
 
 def test__repr__():
     rv = RV(semi_amp=1.0, period=1, omega=35, k2=7, m1=0.81, tau=3561.51)
