@@ -152,13 +152,13 @@ def binary_phase_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_p
         ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
 
     if t_past:
-        for t_num, t_val in enumerate(t_past):
-            phi = ((t_val - host.tau) / host.period + 0.5) % 1 - 0.5
-            rv_star = host.rv_at_phase(phi)
-            ax1.plot(phi, rv_star, ".", markersize=10, markeredgewidth=2)
-            if companion_present:
-                rv_planet = companion.rv_at_phase(phi)
-                ax2.plot(phi, rv_planet, "+", markersize=10, markeredgewidth=2)
+        t_past = np.asarray(t_past)
+        phi = ((t_past - host.tau) / host.period + 0.5) % 1 - 0.5
+        rv_star = host.rv_at_phase(phi)
+        ax1.plot(phi, rv_star, ".", markersize=10, markeredgewidth=2)
+        if companion_present:
+            rv_planet = companion.rv_at_phase(phi)
+            ax2.plot(phi, rv_planet, "+", markersize=10, markeredgewidth=2)
 
     if t_future:
         t_future = np.asarray(t_future)
@@ -265,7 +265,7 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
         ax2.set_ylim(companion.gamma - (amp2 * 1.1), companion.gamma + (amp2 * 1.1))
         ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
 
-    if t_past is not None:
+    if t_past:
         t_past = np.asarray(t_past)
         rv_star = host.rv_at_times(t_past)
         ax1.plot(t_past - t_start, rv_star, "b.", markersize=10, markeredgewidth=2, label="Host Obs")
