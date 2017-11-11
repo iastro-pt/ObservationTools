@@ -3,6 +3,7 @@ import pytest
 from astropy.constants import M_sun, M_jup
 from hypothesis import settings, given, strategies as st
 
+import rv
 from utils.old import RV_from_params, companion_amplitude
 from utils.parse import parse_paramfile
 
@@ -92,3 +93,27 @@ def test_RV_ignore_mean(params):
 def test_companion_amplitude_function(k1, m1, m2):
     m_ratio = (M_sun / M_jup).value
     assert np.allclose(companion_amplitude(k1, m1, m2), (-k1 * m1 * m_ratio / m2))
+
+
+@pytest.mark.xfail(strict=True)
+def test_mid_min_max():
+    """Test error bars get added correctly.
+
+     For parsing parameters with error bars."""
+    param_1 = [10, -5, 2.5]
+    assert np.allclose(rv.min_mid_max(param_1), [5, 10, 12.5])
+    param_2 = [5.1, 2]
+    assert np.allclose(rv.min_mid_max(param_2), [3.1, 5.1, 7.1])
+    param_3 = None
+    assert rv.min_mid_max(param_3) == [None, None, None]
+    param_3 = 1
+    assert rv.min_mid_max(param_3) == 1  # No change
+    param_4 = [1]
+    assert rv.min_mid_max(param_4) == [1]  # No change
+
+    with pytest.raises(ValueError):
+        rv.min_mid_max([1, 2, 3])
+    with pytest.raises(ValueError):
+        rv.min_mid_max([1, -2])
+    with pytest.raises(ValueError):
+        rv.min_mid_max([1, -2, -3])

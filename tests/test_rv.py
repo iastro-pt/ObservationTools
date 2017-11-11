@@ -3,7 +3,6 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-import rv
 import utils.rv_utils
 from rv import parse_args
 from utils import parse
@@ -47,30 +46,6 @@ def test_parse_list_string_with_strings():
     in_list = "source1, source2 et. al. 2017"
     str_list = str(in_list)
     assert parse.parse_list_string(str_list) == ["source1", "source2 et. al. 2017"]
-
-
-@pytest.mark.xfail(strict=True)
-def test_mid_min_max():
-    """Test error bars get added correctly.
-
-     For parsing parameters with error bars."""
-    param_1 = [10, -5, 2.5]
-    assert np.allclose(rv.min_mid_max(param_1), [5, 10, 12.5])
-    param_2 = [5.1, 2]
-    assert np.allclose(rv.min_mid_max(param_2), [3.1, 5.1, 7.1])
-    param_3 = None
-    assert rv.min_mid_max(param_3) == [None, None, None]
-    param_3 = 1
-    assert rv.min_mid_max(param_3) == 1  # No change
-    param_4 = [1]
-    assert rv.min_mid_max(param_4) == [1]  # No change
-
-    with pytest.raises(ValueError):
-        rv.min_mid_max([1, 2, 3])
-    with pytest.raises(ValueError):
-        rv.min_mid_max([1, -2])
-    with pytest.raises(ValueError):
-        rv.min_mid_max([1, -2, -3])
 
 
 @pytest.mark.parametrize("times,obs_list,expected", [
