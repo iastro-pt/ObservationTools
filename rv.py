@@ -1,4 +1,4 @@
-"""Radial Velocity calculations.
+"""Radial Velocity Orbit.
 
 Goals
 -----
@@ -122,14 +122,12 @@ def binary_phase_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_p
         Returns figure object.
 
     """
+    companion_present = companion is not None
     host.ignore_mean = ignore_mean
-    companion.ignore_mean = ignore_mean
 
     phase = np.linspace(-0.5, 0.5, 100) * cycle_fraction
     t = host.tau + phase * host.period
-
     host_rvs = host.rv_at_phase(phase)
-    companion_rvs = companion.rv_at_phase(phase)
 
     fig = plt.figure(figsize=(10, 7))
     fig.subplots_adjust()
@@ -137,53 +135,49 @@ def binary_phase_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_p
     ax1.plot(phase, host_rvs, label="Host", lw=2, color="k")
     ax1.set_xlabel("Orbital Phase")
     ax1.set_ylabel("Host RV (km/s)")
+    host_delta_y = host.max_amp() * 1.1
+    ax1.set_ylim(host.gamma - host_delta_y, host.gamma + host_delta_y)
+    ax1.axhline(host.gamma, color="black", linestyle="-.", alpha=0.5)
 
-    ax2 = ax1.twinx()
-    companion_label = generate_companion_label(companion)
-    ax2.plot(phase, companion_rvs, '--', label=companion_label, lw=2)
-    ax2.set_ylabel("Companion RV (km/s)")
-
-    if 'name' in host._params.keys():
-        if "companion" in host._params.keys():
-            plt.title("RV Phase Curve for {} {}".format(host._params['name'].upper(), host._params['companion']))
-        else:
-            plt.title("RV Phase Curve for {}".format(host._params['name'].upper()))
-    else:
-        plt.title("RV Phase Curve")
+    if companion_present:
+        companion.ignore_mean = ignore_mean
+        companion_rvs = companion.rv_at_phase(phase)
+        ax2 = ax1.twinx()
+        companion_label = generate_companion_label(companion)
+        ax2.plot(phase, companion_rvs, '--', label=companion_label, lw=2)
+        ax2.set_ylabel("Companion RV (km/s)")
+        # Determine rv max amplitudes.
+        comp_delta_y = companion.max_amp() * 1.1
+        ax2.set_ylim(companion.gamma - comp_delta_y, companion.gamma + comp_delta_y)
+        ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
 
     if t_past:
         for t_num, t_val in enumerate(t_past):
             phi = ((t_val - host.tau) / host.period + 0.5) % 1 - 0.5
             rv_star = host.rv_at_phase(phi)
-            rv_planet = companion.rv_at_phase(phi)
             ax1.plot(phi, rv_star, ".", markersize=10, markeredgewidth=2)
-            ax2.plot(phi, rv_planet, "+", markersize=10, markeredgewidth=2)
+            if companion_present:
+                rv_planet = companion.rv_at_phase(phi)
+                ax2.plot(phi, rv_planet, "+", markersize=10, markeredgewidth=2)
 
     if t_future:
-        raise NotImplementedError("Adding future observations times is not implemented yet.")
-    # if t_future:
-    #     for t_num, t_val in enumerate(t_future):
-    #         phi = ((t_val - params[4])/params[5] - 0.5) % 1 + 0.5
-    #         rv_star = RV_from_params(t_val, params, ignore_mean=False)
-    #         rv_planet = RV_from_params(t_val, params, ignore_mean=False, companion=True)
-    #         ax1.plot(phi, rv_star, "+", markersize=12, markeredgewidth=3)
-    #         ax2.plot(phi, rv_planet, "+", markersize=12, markeredgewidth=3)
+        t_future = np.asarray(t_future)
+        phi = ((t_future - host.tau) / host.period + 0.5) % 1 - 0.5
+        rv_star = host.rv_at_phase(phi)
+        ax1.plot(phi, rv_star, "ko", markersize=10, markeredgewidth=2, label="Host Obs")
+        if companion_present:
+            rv_planet = companion.rv_at_phase(phi)
+            ax2.plot(phi, rv_planet, "g*", markersize=10, markeredgewidth=2, label="Comp Obs")
 
-    # Determine rv max amplitudes.
-    host_delta_y = host.max_amp() * 1.1
-    comp_delta_y = companion.max_amp() * 1.1
-
-    ax1.set_ylim(host.gamma - host_delta_y, host.gamma + host_delta_y)
-    ax2.set_ylim(companion.gamma - comp_delta_y, companion.gamma + comp_delta_y)
-
-    ax1.axhline(host.gamma, color="black", linestyle="-.", alpha=0.5)
-    ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
-
+    if 'name' in host._params.keys():
+        if ("companion" in host._params.keys()) and (companion_present):
+            plt.title("RV Phase Curve for {} {}".format(host._params['name'].upper(), host._params['companion']))
+        else:
+            plt.title("RV Phase Curve for {}".format(host._params['name'].upper()))
+    else:
+        plt.title("RV Phase Curve")
     plt.legend(loc=0)
     return fig
-
-
-# Lots of duplication - could be improved
 
 
 def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False,
@@ -213,9 +207,7 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
 
         Displays matplotlib figure.
     """
-    host.ignore_mean = ignore_mean
-    companion.ignore_mean = ignore_mean
-
+    companion_present = companion is not None
     if start_day is None:
         ephem_now = ephem.now()
         t_start = ephem.julian_date(ephem_now)
@@ -238,62 +230,64 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
 
     t_space = np.linspace(min([t_start, obs_start]), t_start + host.period * cycle_fraction, num_points)
 
-    # host_rvs = RV_from_params(t_space, params, ignore_mean=ignore_mean)
-    host_rvs = host.rv_at_times(t_space)
-    companion_rvs = companion.rv_at_times(t_space)
-
-    fig = plt.figure(figsize=(10, 7))
-    fig.subplots_adjust()
-    ax1 = host_subplot(111)
-    ax1.plot(t_space - t_start, host_rvs, label="Host", lw=2, color="k")
-
     start_dt = JulianDate(t_start).to_datetime()
     if (start_dt.hour == 0) and (start_dt.minute == 0) and (start_dt.second == 0):
         start_string = datetime.strftime(start_dt, "%Y-%m-%d")
     else:
         start_string = datetime.strftime(start_dt, "%Y-%m-%d %H:%M:%S")  # Issue with 00:00:01 not appearing
-    ax1.set_xlabel("Days from {!s}".format(start_string))
 
+    fig = plt.figure(figsize=(10, 7))
+    fig.subplots_adjust()
+    ax1 = host_subplot(111)
+
+    host.ignore_mean = ignore_mean
+    host_rvs = host.rv_at_times(t_space)
+    ax1.plot(t_space - t_start, host_rvs, label="Host", lw=2, color="k")
+    # Determine rv max amplitudes.
+    amp1 = host.max_amp()
+    # Adjust axis limits
+    ax1.set_ylim(host.gamma - (amp1 * 1.1), host.gamma + (amp1 * 1.1))
+    ax1.axhline(host.gamma, color="black", linestyle="-.", alpha=0.5)
+    ax1.set_xlabel("Days from {!s}".format(start_string))
     ax1.set_ylabel("Host RV (km/s)")
 
-    ax2 = ax1.twinx()
-    companion_label = generate_companion_label(companion)
-    ax2.plot(t_space - t_start, companion_rvs, '--', label=companion_label, lw=2)
-    ax2.set_ylabel("Companion RV (km/s)")
+    if companion_present:
+        companion.ignore_mean = ignore_mean
+        companion_rvs = companion.rv_at_times(t_space)
+        companion_label = generate_companion_label(companion)
+        ax2 = ax1.twinx()
+        ax2.plot(t_space - t_start, companion_rvs, '--', label=companion_label, lw=2)
+        ax2.set_ylabel("Companion RV (km/s)")
+
+        # Adjust axis limits
+        amp2 = companion.max_amp()
+        # Determine rv max amplitudes.
+        ax2.set_ylim(companion.gamma - (amp2 * 1.1), companion.gamma + (amp2 * 1.1))
+        ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
+
+    if t_past is not None:
+        t_past = np.asarray(t_past)
+        rv_star = host.rv_at_times(t_past)
+        ax1.plot(t_past - t_start, rv_star, "b.", markersize=10, markeredgewidth=2, label="Host Obs")
+        if companion_present:
+            rv_planet = companion.rv_at_times(t_past)
+            ax2.plot(t_past - t_start, rv_planet, "r+", markersize=10, markeredgewidth=2, label="Comp Obs")
+
+    if t_future:
+        t_future = np.asarray(t_future)
+        rv_star = host.rv_at_times(t_future)
+        ax1.plot(t_future - t_start, rv_star, "ko", markersize=10, markeredgewidth=2, label="Host Obs")
+        if companion_present:
+            rv_planet = companion.rv_at_times(t_future)
+            ax2.plot(t_future - t_start, rv_planet, "g*", markersize=10, markeredgewidth=2, label="Comp Obs")
 
     if 'name' in host._params.keys():
-        if "companion" in host._params.keys():
+        if ("companion" in host._params.keys()) and (companion_present):
             plt.title("Radial Velocity Curve for {} {}".format(host._params['name'].upper(), host._params['companion']))
         else:
             plt.title("Radial Velocity Curve for {}".format(host._params['name'].upper()))
     else:
         plt.title("Radial Velocity Curve")
-    if t_past is not None:
-        t_past = np.asarray(t_past)
-        rv_star = host.rv_at_times(t_past)
-        rv_planet = companion.rv_at_times(t_past)
-        ax1.plot(t_past - t_start, rv_star, "b.", markersize=10, markeredgewidth=2, label="Host Obs")
-        ax2.plot(t_past - t_start, rv_planet, "r+", markersize=10, markeredgewidth=2, label="Comp Obs")
-
-    if t_future:
-        t_past = np.asarray(t_future)
-        rv_star = host.rv_at_times(t_future)
-        rv_planet = companion.rv_at_times(t_future)
-        ax1.plot(t_future - t_start, rv_star, "ko", markersize=10, markeredgewidth=2, label="Host Obs")
-        ax2.plot(t_future - t_start, rv_planet, "g*", markersize=10, markeredgewidth=2, label="Comp Obs")
-    # raise NotImplementedError("Adding future observations times is not implemented yet.")
-
-    # Determine rv max amplitudes.
-    amp1 = host.max_amp()
-    amp2 = companion.max_amp()
-
-    # Adjust axis limits
-    ax1.set_ylim(host.gamma - (amp1 * 1.1), host.gamma + (amp1 * 1.1))
-    ax2.set_ylim(companion.gamma - (amp2 * 1.1), companion.gamma + (amp2 * 1.1))
-
-    ax1.axhline(host.gamma, color="black", linestyle="-.", alpha=0.5)
-    ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
-
     plt.legend(loc=0)
 
     return fig
