@@ -211,7 +211,7 @@ def test_full_phase(center, npoints):
 
 def test_anomaly_gives_runtime_error():
     with pytest.raises(RuntimeError):
-        RV.true_anomaly(0.0000001, 0.9999999999999999999)
+        RV.true_anomaly(0.0000001, 0.9999999, niterationmax=5)
 
 
 def test_set_ignore_mean():
