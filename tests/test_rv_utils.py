@@ -265,3 +265,7 @@ def test_prepare_mass_params_scales_m1_to_jup_mass():
     params = {"m1": 1., "m2": 0}
     params = prepare_mass_params(params)
     assert params["m1"] == M_sun / M_jup
+
+
+def test_JulainDate_now():
+    assert np.allclose(JulianDate.now().jd, ephem.julian_date(ephem.now()))

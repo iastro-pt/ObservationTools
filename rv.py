@@ -13,7 +13,6 @@ from datetime import datetime
 from typing import Dict, List, Any, Union
 
 import astropy.units as u
-import ephem
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.constants import c
@@ -108,7 +107,8 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
     return fig
 
 
-def binary_phase_curve(host, companion, cycle_fraction=1, phase_center=0, ignore_mean=False, t_past=False, t_future=False):
+def binary_phase_curve(host, companion, cycle_fraction=1, phase_center=0, ignore_mean=False, t_past=False,
+                       t_future=False):
     # type: (RV, RV, float, bool, Any, Any) -> int
     """Plot RV phase curve centered on zero.
 
@@ -221,7 +221,7 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
     companion_present = companion is not None
     t_start = start_day if start_day is not None else JulianDate.now().jd
     # Make curve from start of t_past
-    print("t_past",t_past,"t_future",t_future)
+    print("t_past", t_past, "t_future", t_future)
     if isinstance(t_past, float):
         obs_start = t_past
     elif t_past != [] and t_past is not None:
@@ -242,7 +242,8 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
         logging.debug("num points = {}".format(num_points))
         raise ValueError("num_points is to large")
 
-    t_space = np.linspace(min([t_start, obs_start]), np.max([t_start + host.period * cycle_fraction, obs_end]), num_points)
+    t_space = np.linspace(min([t_start, obs_start]), np.max([t_start + host.period * cycle_fraction, obs_end]),
+                          num_points)
 
     start_dt = JulianDate(t_start).to_datetime()
     if (start_dt.hour == 0) and (start_dt.minute == 0) and (start_dt.second == 0):
