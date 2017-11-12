@@ -1,0 +1,30 @@
+# ## HD30501 single keplerian parameters
+# Some parameter description and units:
+# mean_val - Mean RV motion          (km/s)
+# k1 - semi-major axis of star       (km/s)
+# omega - Argument of periapsis       (deg)
+# tau - reference time                (JD*)
+# period - orbital period             (day)
+# m_star - Mass of host star        (M_sun)
+# r_star - Radius of star           (R_sun)
+# age - Age of star                   (Gyr)
+# a - Semimajor axis distance.         (AU)
+# msini - Minimum mass of companion (M Jup)
+# m_true - Companion true mass      (M_jup)
+# i - inclination                     (deg)
+# temp - Host star Simbad temperature   (K)
+# fe_h - Host star metalicity         (dex)
+# logg - Host star logg           (cm s^-2)
+name         = 
+mean_val     = 
+k1           = 
+omega        = 
+eccentricity = 
+tau          = 
+period       = 
+m_star       = 
+msini        = 
+m_true       = 
+temp         = 
+fe_h         = 
+logg         = 
