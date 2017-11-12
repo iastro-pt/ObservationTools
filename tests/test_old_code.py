@@ -87,9 +87,9 @@ def test_RV_ignore_mean(params):
                        RV_from_params(time, params, ignore_mean=False) - params["mean_val"])
 
 
-@given(st.floats(allow_nan=False, allow_infinity=False),
-       st.floats(min_value=0.01, allow_nan=False, allow_infinity=False),
-       st.floats(min_value=0.001, allow_nan=False, allow_infinity=False))
+@given(st.floats(min_value=-1e5, max_value=1e5),
+       st.floats(min_value=0.0001, max_value=1e5),
+       st.floats(min_value=0.0001, max_value=1e5))
 def test_companion_amplitude_function(k1, m1, m2):
     m_ratio = (M_sun / M_jup).value
     assert np.allclose(companion_amplitude(k1, m1, m2), (-k1 * m1 * m_ratio / m2))
