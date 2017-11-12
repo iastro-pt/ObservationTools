@@ -42,13 +42,15 @@ def parse_args(args):
     parser.add_argument('-m', '--mode', help='Display mode '
                                              ' e.g. phase or time plot. Default="phase"',
                         choices=['phase', 'time'], default='phase', type=str)
+    parser.add_argument("-c", "--cycle_fraction", default=1.0, help="Cylcle fraction to display", type=float)
+    parser.add_argument("-p", "--phase_center", help="Center of phase curve.", default=0)
     parser.add_argument("--save_only", help="Only save the figure, do not show it.", action="store_true")
     parser.add_argument("--debug", help="Turning on debug output", action='store_true', default=False)
     return parser.parse_args(args)
 
 
 def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
-         save_only=False):  # obs_times=None, mode='phase', rv_diff=None
+         cycle_fraction=1, phase_center=0, save_only=False):  # obs_times=None, mode='phase', rv_diff=None
     # type: (Dict[str, Union[str, float]], str, List[str], str, str, bool) -> None
     r"""Radial velocity displays.
 
@@ -90,12 +92,14 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
     companion_orbit = host_orbit.create_companion()
 
     if mode == "phase":
-        fig = binary_phase_curve(host_orbit, companion_orbit, t_past=past_obs, t_future=future_obs)
+        fig = binary_phase_curve(host_orbit, companion_orbit, t_past=past_obs,
+                                 t_future=future_obs,
+                                 cycle_fraction=cycle_fraction,
+                                 phase_center=phase_center)
     elif mode == "time":
-        if date is not None:
-            print("Date doing into ehem.julian_date", date)
-            date = ephem.julian_date(date)
-        fig = binary_time_curve(host_orbit, companion_orbit, t_past=past_obs, start_day=date, t_future=future_obs)
+        fig = binary_time_curve(host_orbit, companion_orbit, t_past=past_obs,
+                                start_day=date_split, t_future=future_obs,
+                                cycle_fraction=cycle_fraction)
     else:
         raise NotImplementedError("Other modes are not Implemented yet.")
     if not save_only:
@@ -104,7 +108,7 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
     return fig
 
 
-def binary_phase_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_past=False, t_future=False):
+def binary_phase_curve(host, companion, cycle_fraction=1, phase_center=0, ignore_mean=False, t_past=False, t_future=False):
     # type: (RV, RV, float, bool, Any, Any) -> int
     """Plot RV phase curve centered on zero.
 
@@ -120,6 +124,8 @@ def binary_phase_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_p
         Times of past observations.
     t_future: float, array-like
         Times of future observations.
+    phase_center: float
+        Center of phase curve to show.
 
     Returns
     -------
@@ -128,15 +134,15 @@ def binary_phase_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_p
 
     """
     companion_present = companion is not None
-    host.ignore_mean = ignore_mean
 
-    phase = np.linspace(-0.5, 0.5, 100) * cycle_fraction
-    t = host.tau + phase * host.period
-    host_rvs = host.rv_at_phase(phase)
+    phase = np.linspace(-0.5, 0.5, 100) * cycle_fraction + phase_center
 
     fig = plt.figure(figsize=(10, 7))
     fig.subplots_adjust()
     ax1 = host_subplot(111)
+
+    host.ignore_mean = ignore_mean
+    host_rvs = host.rv_at_phase(phase)
     ax1.plot(phase, host_rvs, label="Host", lw=2, color="k")
     ax1.set_xlabel("Orbital Phase")
     ax1.set_ylabel("Host RV (km/s)")
@@ -195,7 +201,7 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
     host: RV
         RV class for system.
     cycle_fraction: float
-        Fraction of phase space to plot. (Default=1)
+        Minimum Fraction of orbit to plot. (Default=1)
     ignore_mean: bool
         Remove the contribution from the systems mean velocity. (Default=False)
     t_past: float, array-like
@@ -213,19 +219,22 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
         Displays matplotlib figure.
     """
     companion_present = companion is not None
-    if start_day is None:
-        ephem_now = ephem.now()
-        t_start = ephem.julian_date(ephem_now)
-    else:
-        t_start = start_day
-
+    t_start = start_day if start_day is not None else JulianDate.now().jd
     # Make curve from start of t_past
+    print("t_past",t_past,"t_future",t_future)
     if isinstance(t_past, float):
         obs_start = t_past
-    elif t_past is not None:
+    elif t_past != [] and t_past is not None:
         obs_start = np.min(t_past)
     else:
         obs_start = t_start
+
+    if isinstance(t_future, float):
+        obs_end = t_future
+    elif t_future != [] and t_future is not None:
+        obs_end = np.max(t_future)
+    else:
+        obs_end = t_start
     # Specify 100 points per period
     num_cycles = ((t_start + host.period * cycle_fraction) - np.min([t_start, obs_start])) / host.period
     num_points = np.ceil(500 * num_cycles)
@@ -233,7 +242,7 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
         logging.debug("num points = {}".format(num_points))
         raise ValueError("num_points is to large")
 
-    t_space = np.linspace(min([t_start, obs_start]), t_start + host.period * cycle_fraction, num_points)
+    t_space = np.linspace(min([t_start, obs_start]), np.max([t_start + host.period * cycle_fraction, obs_end]), num_points)
 
     start_dt = JulianDate(t_start).to_datetime()
     if (start_dt.hour == 0) and (start_dt.minute == 0) and (start_dt.second == 0):
