@@ -144,11 +144,11 @@ def binary_phase_curve(host, companion, cycle_fraction=1, phase_center=0, ignore
     host.ignore_mean = ignore_mean
     host_rvs = host.rv_at_phase(phase)
     ax1.plot(phase, host_rvs, label="Host", lw=2, color="k")
-    ax1.set_xlabel("Orbital Phase")
-    ax1.set_ylabel("Host RV (km/s)")
     host_delta_y = host.max_amp() * 1.1
     ax1.set_ylim(host.gamma - host_delta_y, host.gamma + host_delta_y)
     ax1.axhline(host.gamma, color="black", linestyle="-.", alpha=0.5)
+    ax1.set_xlabel("Orbital Phase")
+    ax1.set_ylabel("Host RV (km/s)")
 
     if companion_present:
         companion.ignore_mean = ignore_mean
@@ -156,11 +156,11 @@ def binary_phase_curve(host, companion, cycle_fraction=1, phase_center=0, ignore
         ax2 = ax1.twinx()
         companion_label = generate_companion_label(companion)
         ax2.plot(phase, companion_rvs, '--', label=companion_label, lw=2)
-        ax2.set_ylabel("Companion RV (km/s)")
         # Determine rv max amplitudes.
         comp_delta_y = companion.max_amp() * 1.1
         ax2.set_ylim(companion.gamma - comp_delta_y, companion.gamma + comp_delta_y)
         ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
+        ax2.set_ylabel("Companion RV (km/s)")
 
     if t_past:
         t_past = np.asarray(t_past)
@@ -271,29 +271,28 @@ def binary_time_curve(host, companion, cycle_fraction=1, ignore_mean=False, t_pa
         companion_label = generate_companion_label(companion)
         ax2 = ax1.twinx()
         ax2.plot(t_space - t_start, companion_rvs, '--', label=companion_label, lw=2)
-        ax2.set_ylabel("Companion RV (km/s)")
-
         # Adjust axis limits
         amp2 = companion.max_amp()
         # Determine rv max amplitudes.
         ax2.set_ylim(companion.gamma - (amp2 * 1.1), companion.gamma + (amp2 * 1.1))
         ax2.axhline(companion.gamma, color="black", linestyle="-.", alpha=0.5)
+        ax2.set_ylabel("Companion RV (km/s)")
 
     if t_past:
         t_past = np.asarray(t_past)
         rv_star = host.rv_at_times(t_past)
-        ax1.plot(t_past - t_start, rv_star, "b.", markersize=10, markeredgewidth=2, label="Host Obs")
+        ax1.plot(t_past - t_start, rv_star, "b.", markersize=10, markeredgewidth=2, label="Host past")
         if companion_present:
             rv_planet = companion.rv_at_times(t_past)
-            ax2.plot(t_past - t_start, rv_planet, "r+", markersize=10, markeredgewidth=2, label="Comp Obs")
+            ax2.plot(t_past - t_start, rv_planet, "r+", markersize=10, markeredgewidth=2, label="Comp past")
 
     if t_future:
         t_future = np.asarray(t_future)
         rv_star = host.rv_at_times(t_future)
-        ax1.plot(t_future - t_start, rv_star, "ko", markersize=10, markeredgewidth=2, label="Host Obs")
+        ax1.plot(t_future - t_start, rv_star, "ko", markersize=10, markeredgewidth=2, label="Host future")
         if companion_present:
             rv_planet = companion.rv_at_times(t_future)
-            ax2.plot(t_future - t_start, rv_planet, "g*", markersize=10, markeredgewidth=2, label="Comp Obs")
+            ax2.plot(t_future - t_start, rv_planet, "g*", markersize=10, markeredgewidth=2, label="Comp future")
 
     if 'name' in host._params.keys():
         if ("companion" in host._params.keys()) and (companion_present):
