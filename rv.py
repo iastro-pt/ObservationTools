@@ -80,6 +80,9 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
 
     obs_times = join_times(obs_times, obs_list)
     obs_jd = strtimes2jd(obs_times)
+    # Slit past and future obs
+    future_obs = [obs for obs in obs_jd if obs > JulianDate.now().jd]
+    past_obs = [obs for obs in obs_jd if obs <= JulianDate.now().jd]
 
     host_orbit = RV.from_dict(parameters)
     companion_orbit = host_orbit.create_companion()

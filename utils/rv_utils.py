@@ -363,6 +363,10 @@ class JulianDate(object):
         return dt
 
     @classmethod
+    def now(cls):
+        return cls.from_datetime(datetime.datetime.now())
+
+    @classmethod
     def from_str(cls, time_str, format=strformat):
         """Return JulianDate from a time string.
 
