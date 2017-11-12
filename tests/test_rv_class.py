@@ -56,7 +56,7 @@ def test_rv_class_max_amp_on_elipse(semi_amp, period, ecc, tau, gamma, omega, ex
     assert rv.max_amp() == expected_amp
 
 
-@given(st.floats(min_value=0, max_value=np.pi), st.floats(min_value=0.001, max_value=0.999))
+@given(st.floats(min_value=0, max_value=np.pi/2), st.floats(min_value=0.01, max_value=0.9))
 @example(2, 0.5)  # example with an integer
 def test_true_anomaly_with_scalar(ma, ecc):
     assume(abs(ma) > 0.001)
@@ -87,7 +87,7 @@ def test_mean_anomaly_shape(t, t0, p):
     assert isinstance(t, np.ndarray)
 
 
-@given(st.lists(st.floats(min_value=0, max_value=np.pi), min_size=1), st.floats(min_value=0.001, max_value=0.9999))
+@given(st.lists(st.floats(min_value=0, max_value=np.pi/2), min_size=1), st.floats(min_value=0.01, max_value=0.9))
 def test_true_anomaly(ma, ecc):
     ma = np.asarray(ma)
     assume(np.all(np.abs(ma) > 0.0001))
