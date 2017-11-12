@@ -21,6 +21,7 @@ class RV(object):
     2) The units of mean_val and k1, k2 should be the same e.g.both km / s
     3) Tau should be the julian date, and the period given in days.
     """
+
     def __init__(self, semi_amp=0.0, period=0.0, ecc=0.0,
                  tau=0.0, gamma=0.0, omega=0.0, **other_params):
         self.semi_amp = semi_amp
@@ -43,7 +44,7 @@ class RV(object):
 
         return "RV(semi_amp={1}, period={2}, ecc={3}, tau={4}, omega={5}, gamma={6}{7})".format(
             self.__class__, self.semi_amp, self.period, self.ecc, self.tau, self.omega, self.gamma, other_params)
-    
+
     def orbit_dict(self):
         return {"k1": self.semi_amp, "period": self.period, "eccentricity": self.ecc,
                 "tau": self.tau, "mean_val": self.gamma, "omega": self.omega}
@@ -118,6 +119,7 @@ class RV(object):
             return self._ignore_mean
         except AttributeError:
             return False
+
     @ignore_mean.setter
     def ignore_mean(self, value=None):
         if value is None:
@@ -422,29 +424,26 @@ def strtimes2jd(obs_times, reduced=False, format=None):
     """Convenience function for convert str times to reduced JD.
     If reduced=True returns JD-2400000
     """
-    reduce_value = 2400000 if reduced else 0
-
+    change_flag = False
     if obs_times is not None:
         print("obs times", obs_times)
 
         if isinstance(obs_times, str):
-            if reduced:
-                jds = JulianDate.from_str(obs_times, format)
-                jds.reduce()
-                jds = jds.jd
-            else:
-                jds = JulianDate.from_str(obs_times, format).jd
-        elif isinstance(obs_times, (list, tuple)):
-            if reduced:
-                jds = []
-                for obs in obs_times:
-                    jd = JulianDate.from_str(obs, format)
+            obs_times = [obs_times]
+            change_flag = True
+
+        if isinstance(obs_times, (list, tuple)):
+            jds = []
+            for obs in obs_times:
+                jd = JulianDate.from_str(obs, format)
+                print(jd)
+                if reduced:
                     jd.reduce()
-                    jds.append(jd.jd)
-                    # jds = [JulianDate.from_str(obs).reduce().jd for obs in obs_times]
-            else:
-                jds = [JulianDate.from_str(obs, format).jd for obs in obs_times]
+                print(jd)
+                jds.append(jd.jd)
         print("obs jd times", jds)
+        if change_flag == 1:
+            jds = jds[0]
         return jds
     else:
         return None
