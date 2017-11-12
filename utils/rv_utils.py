@@ -312,6 +312,7 @@ class JulianDate(object):
     julian_epoch_jd = datetime.timedelta(2451545)  # julian epoch in julian dates
     reduce_jd = 2400000
     strformat = "%Y-%m-%d %H:%M:%S"
+    strformat2 = "%Y-%m-%d"
 
     def __init__(self, jd, reduced=False):
         self.jd = jd
@@ -383,7 +384,13 @@ class JulianDate(object):
         """
         if format is None:
             format = cls.strformat
-        dt = datetime.datetime.strptime(time_str, format)
+        try:
+            dt = datetime.datetime.strptime(time_str, format)
+        except ValueError:
+            try:
+                dt = datetime.datetime.strptime(time_str, cls.strformat)
+            except ValueError:
+                dt = datetime.datetime.strptime(time_str, cls.strformat2)
         return cls.from_datetime(dt)
 
     def to_str(self, format=None):
