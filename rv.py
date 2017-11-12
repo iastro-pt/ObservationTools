@@ -80,20 +80,22 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
 
     obs_times = join_times(obs_times, obs_list)
     obs_jd = strtimes2jd(obs_times)
+
+    date_split = JulianDate.now().jd if date is None else JulianDate.from_str(date).jd
     # Slit past and future obs
-    future_obs = [obs for obs in obs_jd if obs > JulianDate.now().jd]
-    past_obs = [obs for obs in obs_jd if obs <= JulianDate.now().jd]
+    future_obs = [obs for obs in obs_jd if obs > date_split]
+    past_obs = [obs for obs in obs_jd if obs <= date_split]
 
     host_orbit = RV.from_dict(parameters)
     companion_orbit = host_orbit.create_companion()
 
     if mode == "phase":
-        fig = binary_phase_curve(host_orbit, companion_orbit, t_past=obs_jd)
+        fig = binary_phase_curve(host_orbit, companion_orbit, t_past=past_obs, t_future=future_obs)
     elif mode == "time":
         if date is not None:
             print("Date doing into ehem.julian_date", date)
             date = ephem.julian_date(date)
-        fig = binary_time_curve(host_orbit, companion_orbit, t_past=obs_jd, start_day=date)
+        fig = binary_time_curve(host_orbit, companion_orbit, t_past=past_obs, start_day=date, t_future=future_obs)
     else:
         raise NotImplementedError("Other modes are not Implemented yet.")
     if not save_only:
