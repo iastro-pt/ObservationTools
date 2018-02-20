@@ -19,6 +19,9 @@ def _parser():
     parser.add_argument('-s', '--site', default='esolasilla',
                         help='Observatory. Default is ESO La Silla. '
                              'Common codes are esoparanal, lapalma, keck, lco, Palomar, etc')
+    parser.add_argument('-l', '--loc', default=None,
+                        help='Give the location of the observatory.'
+                             'Comma-separated altitude, latitude, longitude, timezone')
     parser.add_argument('-c', default=False, action='store_true',
                         help='Just print "target RA DEC" (to use in STARALT)')
     parser.add_argument('-m', '--mode', choices=['staralt', 'starobs'], default='staralt',
@@ -69,7 +72,10 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   font1.set_weight('medium')
 
   # set the observatory
-  obs = pyasl.observatory(observatory)
+  if isinstance(observatory, dict):
+    obs = observatory
+  else:
+    obs = pyasl.observatory(observatory)
 
 
   fig = plt.figure(figsize=(15,10))
@@ -260,7 +266,10 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
   rcParams['xtick.major.pad'] = 12
 
 
-  obs = pyasl.observatory(observatory)
+  if isinstance(observatory, dict):
+    obs = observatory
+  else:
+    obs = pyasl.observatory(observatory)
 
   # observer = ephem.Observer()
   # observer.pressure = 0
@@ -541,23 +550,26 @@ if __name__ == '__main__':
       print(date)
 
   ## Find observatory
-  available_sites = pyasl.listObservatories(show=False)
-  if args.site not in available_sites.keys():
-    print('"{0!s}" is not a valid observatory code. Try one of the following:\n'.format(args.site))
+  if args.loc is None:
+    available_sites = pyasl.listObservatories(show=False)
+    if args.site not in available_sites.keys():
+      print('"{0!s}" is not a valid observatory code. Try one of the following:\n'.format(args.site))
 
-    maxCodeLen = max(map(len, available_sites.keys()))
-    print(("{0:"+str(maxCodeLen)+"s}     ").format("Code") + "Observatory name")
-    print("-" * (21+maxCodeLen))
-    for k in sorted(available_sites.keys(), key=lambda s: s.lower()):
-      print(("{0:"+str(maxCodeLen)+"s} --- ").format(k) + available_sites[k]["name"])
+      maxCodeLen = max(map(len, available_sites.keys()))
+      print(("{0:"+str(maxCodeLen)+"s}     ").format("Code") + "Observatory name")
+      print("-" * (21+maxCodeLen))
+      for k in sorted(available_sites.keys(), key=lambda s: s.lower()):
+        print(("{0:"+str(maxCodeLen)+"s} --- ").format(k) + available_sites[k]["name"])
 
-    sys.exit(1)
+      sys.exit(1)
+    site = args.site
 
-
-  print(pyasl.observatory(args.site)['name'])
-
+  else:
+    loc = map(float, args.loc.split(','))
+    site = {'altitude':loc[0], 'latitude': loc[1], 'longitude':loc[2], 'tz':loc[3], 'name':'unknown'}
+  
   if args.mode == 'staralt':
     ## Plot visibility
-    VisibilityPlot(date=date, targets=targets, observatory=args.site)
+    VisibilityPlot(date=date, targets=targets, observatory=site)
   elif args.mode == 'starobs':
-    StarObsPlot(year=date, targets=targets, observatory=args.site)
+    StarObsPlot(year=date, targets=targets, observatory=site)
