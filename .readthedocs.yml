@@ -1,0 +1,17 @@
+# Read the Docs Configuration File
+
+# Build PDF aswell as HTML and JSON
+formats:
+    - pdf
+
+# Requirements file
+requirements_file:
+    requirements/requirements.txt
+
+python:
+    version: 3.5
+    setup_py_install: true
+    # From extras_require in setup.py
+    extra_requirements:
+        - tests
+        - docs
