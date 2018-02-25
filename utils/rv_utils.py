@@ -487,9 +487,9 @@ def join_times(obs_times=None, obs_list=None):
 def prepare_mass_params(params, only_msini=True):
     """Update parameter dictionary to set m1 and m2 if not given."""
     if params.get("m1") is None:
-        params["m1"] = params["m_sun"]  # solar mass
+        params["m1"] = params.get("m_sun", 1)  # solar mass
 
-    # Convert m_sun to jupyter masses
+    # Convert m_sun to Jupiter masses
     params["m1"] = params["m1"] * M_sun / M_jup  # jupyter mass
 
     if params.get("m2") is None:
