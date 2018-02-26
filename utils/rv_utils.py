@@ -490,10 +490,16 @@ def prepare_mass_params(params, only_msini=True):
         params["m1"] = params.get("m_sun", 1)  # solar mass
 
     # Convert m_sun to Jupiter masses
-    params["m1"] = params["m1"] * M_sun / M_jup  # jupyter mass
+    params["m1"] = params["m1"] * M_sun / M_jup  # Jupiter mass
 
     if params.get("m2") is None:
-        params["m2"] = params["m_sini"] if only_msini else params["m_true"]
+        if only_msini:
+            try:
+                params["m2"] = params["m_sini"]
+            except:
+                params["m2"] = params["msini"]
+        else:
+            params["m2"] = params["m_true"]
         # should give a key error if the correct mass not given
 
     params["msini_flag"] = only_msini
