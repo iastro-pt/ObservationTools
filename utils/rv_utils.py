@@ -123,7 +123,7 @@ class RV(object):
     @ignore_mean.setter
     def ignore_mean(self, value=None):
         if value is None:
-            val = self._params.get("ignore_mean", False)
+            value = self._params.get("ignore_mean", False)
         self._ignore_mean = value
 
     def rv_at_phase(self, phase):
