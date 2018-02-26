@@ -7,7 +7,7 @@ import numpy as np
 from astropy.constants import M_jup, M_sun
 
 from utils.parse import parse_obslist, parse_paramfile
-
+from collections import OrderedDict
 
 # TODO: Replace "Any" with numpy type hint when available
 
@@ -34,7 +34,9 @@ class RV(object):
 
         self.ignore_mean = other_params.get("ignore_mean", False)
         if other_params is not None:
-            self._params.update(other_params)
+            # Add other params in sorted key order.
+            for key, value in sorted(other_params.items(), key=lambda t: t[0]):
+                self._params.update({key: value})
 
     def __repr__(self):
         other_params = ""
@@ -46,8 +48,8 @@ class RV(object):
             self.__class__, self.semi_amp, self.period, self.ecc, self.tau, self.omega, self.gamma, other_params)
 
     def orbit_dict(self):
-        return {"k1": self.semi_amp, "period": self.period, "eccentricity": self.ecc,
-                "tau": self.tau, "mean_val": self.gamma, "omega": self.omega}
+        return OrderedDict([("k1", self.semi_amp), ("period", self.period), ("eccentricity", self.ecc),
+                ("tau", self.tau), ("mean_val", self.gamma), ("omega", self.omega)])
 
     def to_dict(self):
         self._params.update(self.orbit_dict())
