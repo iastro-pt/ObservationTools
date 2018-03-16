@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# from __future__ import print_function
+from __future__ import print_function
 import sys
 import numpy as np
 import datetime as dt
@@ -521,15 +521,23 @@ if __name__ == '__main__':
   args = _parser()
 
   target_names = args.targets[0].split(',')
-  # print(target_names)
 
   ## Get coordinates for all the targets
   targets = []
+
+  # flush keyword was not backported to Python < 3.3
+  if sys.version_info[:2] < (3, 3):
+    print('Sending queries to CDS...', end=' '); sys.stdout.flush()
+  else:
+    print('Sending queries to CDS...', end=' ', flush=True)
+
   for target_name in target_names:
     try:
       targets.append({'name': target_name, 'coord': SkyCoord.from_name(target_name)})
     except name_resolve.NameResolveError as e:
       print('Could not find target: {0!s}'.format(target_name))
+  
+  print('finished!')
 
   ## Just print coordinates in STARALT format and exit
   if args.c:
