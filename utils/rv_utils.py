@@ -125,7 +125,7 @@ class RV(object):
     @ignore_mean.setter
     def ignore_mean(self, value=None):
         if value is None:
-            val = self._params.get("ignore_mean", False)
+            value = self._params.get("ignore_mean", False)
         self._ignore_mean = value
 
     def rv_at_phase(self, phase):
@@ -489,13 +489,19 @@ def join_times(obs_times=None, obs_list=None):
 def prepare_mass_params(params, only_msini=True):
     """Update parameter dictionary to set m1 and m2 if not given."""
     if params.get("m1") is None:
-        params["m1"] = params["m_sun"]  # solar mass
+        params["m1"] = params.get("m_sun", 1)  # solar mass
 
-    # Convert m_sun to jupyter masses
-    params["m1"] = params["m1"] * M_sun / M_jup  # jupyter mass
+    # Convert m_sun to Jupiter masses
+    params["m1"] = params["m1"] * M_sun / M_jup  # Jupiter mass
 
     if params.get("m2") is None:
-        params["m2"] = params["m_sini"] if only_msini else params["m_true"]
+        if only_msini:
+            try:
+                params["m2"] = params["m_sini"]
+            except:
+                params["m2"] = params["msini"]
+        else:
+            params["m2"] = params["m_true"]
         # should give a key error if the correct mass not given
 
     params["msini_flag"] = only_msini

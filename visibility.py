@@ -586,7 +586,7 @@ if __name__ == '__main__':
     site = args.site
 
   else:
-    loc = map(float, args.loc.split(','))
+    loc = list(map(float, args.loc.split(',')))
     site = {'altitude':loc[0], 'latitude': loc[1], 'longitude':loc[2], 'tz':loc[3], 'name':'unknown'}
   
   if args.mode == 'staralt':

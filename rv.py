@@ -82,6 +82,12 @@ def main(params, mode="phase", obs_times=None, obs_list=None, date=None,
     obs_times = join_times(obs_times, obs_list)
     obs_jd = strtimes2jd(obs_times)
 
+    test_jd = obs_jd[0] if isinstance(obs_jd, (list, tuple)) else obs_jd
+
+    if ((str(parameters["tau"]).startswith("24") and not str(test_jd).startswith("24")) or
+        (not(str(parameters["tau"]).startswith("24")) and str(test_jd).startswith("24"))):
+        raise ValueError("Mismatch between Tau parameter '{0}' and times used '{1}'.".format(parameters["tau"], obs_jd))
+
     date_split = JulianDate.now().jd if date is None else JulianDate.from_str(date).jd
     # Slit past and future obs
     future_obs = [obs for obs in obs_jd if obs > date_split]
