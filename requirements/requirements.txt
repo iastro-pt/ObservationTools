@@ -1,7 +1,7 @@
 argparse==1.4.0
-astropy==2.0.6  # pyup: < 3.0.0 until 2019-12-31
+astropy==2.0.7  # pyup: < 3.0.0 until 2019-12-31
 ephem==3.7.6.0
 matplotlib==2.2.2
-numpy==1.14.3
-scipy==1.0.1
+numpy==1.14.5
+scipy==1.1.0
 PyAstronomy==0.12.0
