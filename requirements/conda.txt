@@ -1,5 +1,0 @@
-# For building quickly on travis-ci
-astropy
-matplotlib
-numpy
-scipy
