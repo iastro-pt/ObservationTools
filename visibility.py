@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# from __future__ import print_function
+from __future__ import print_function
 import sys
 import numpy as np
 import datetime as dt
@@ -25,7 +25,10 @@ def _parser():
     parser.add_argument('-c', default=False, action='store_true',
                         help='Just print "target RA DEC" (to use in STARALT)')
     parser.add_argument('-m', '--mode', choices=['staralt', 'starobs'], default='staralt',
-                        help='staralt: plot altitude against time for a particular night; starobs: plot how altitude changes over a year')
+                        help='staralt: plot altitude against time for a particular night; '
+                             'starobs: plot how altitude changes over a year')
+    parser.add_argument('--hover', default=False, action='store_true',
+                        help='Color lines when mouse hover')
     return parser.parse_args()
 
 
@@ -39,7 +42,7 @@ def decdeg2dms(dd):
     return (degrees,minutes,seconds)
 
 
-def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
+def StarObsPlot(year=None, targets=None, observatory=None, print2file=False, hover=False):
   """
     Plot the visibility of target.
 
@@ -221,11 +224,27 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False):
   plt.text(0.01,0.97, obsco, transform=fig.transFigure, ha='left', va='center', fontsize=10)
   plt.text(0.01,0.95, obs['name'], transform=fig.transFigure, ha='left', va='center', fontsize=10)
 
+  # interactive!
+  if hover:
+    main_axis = fig.axes[0]
+    all_lines = set(main_axis.get_lines())
+    def on_plot_hover(event):
+      for line in main_axis.get_lines():
+          if line.contains(event)[0]:
+            line.set_color('red') # make this line red
+            # and all others black
+            all_other_lines = all_lines - set([line])
+            for other_line in all_other_lines:
+              other_line.set_color('black')
+            fig.canvas.draw_idle()
+    fig.canvas.mpl_connect('motion_notify_event', on_plot_hover)
+
   if print2file:
     pass
     # plt.savefig(outfile, format="png", dpi=300)
   else:
     plt.show()
+  return fig
 
 
 
@@ -494,21 +513,31 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
   else:
     plt.show()
 
+  return fig
+
 
 
 if __name__ == '__main__':
   args = _parser()
 
   target_names = args.targets[0].split(',')
-  # print(target_names)
 
   ## Get coordinates for all the targets
   targets = []
+
+  # flush keyword was not backported to Python < 3.3
+  if sys.version_info[:2] < (3, 3):
+    print('Sending queries to CDS...', end=' '); sys.stdout.flush()
+  else:
+    print('Sending queries to CDS...', end=' ', flush=True)
+
   for target_name in target_names:
     try:
       targets.append({'name': target_name, 'coord': SkyCoord.from_name(target_name)})
     except name_resolve.NameResolveError as e:
       print('Could not find target: {0!s}'.format(target_name))
+  
+  print('finished!')
 
   ## Just print coordinates in STARALT format and exit
   if args.c:
@@ -570,6 +599,6 @@ if __name__ == '__main__':
   
   if args.mode == 'staralt':
     ## Plot visibility
-    VisibilityPlot(date=date, targets=targets, observatory=site)
+    fig = VisibilityPlot(date=date, targets=targets, observatory=site)
   elif args.mode == 'starobs':
-    StarObsPlot(year=date, targets=targets, observatory=site)
+    fig = StarObsPlot(year=date, targets=targets, observatory=site, hover=args.hover)

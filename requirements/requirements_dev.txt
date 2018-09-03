@@ -1,5 +1,5 @@
-coverage==4.4.2
-hypothesis==3.44.24
-pytest==3.4.0
+coverage==4.5.1
+hypothesis==3.70.0
+pytest==3.7.4
 pytest-cov==2.5.1
 python-coveralls==2.9.1
