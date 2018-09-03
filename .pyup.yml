@@ -33,10 +33,8 @@ search: True
 requirements:
   - requirements/requirements.txt:
       pin: True
-  - requirements/test.txt:
+  - requirements/requirements_dev.txt:
       pin: True
-  - requirements/conda.txt:
-      pin: False
 
 # add a label to pull requests, default is not set
 # requires private repo permissions, even on public repos

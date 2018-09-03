@@ -7,31 +7,12 @@ python:
   - "3.5"
   - "3.6"
 
-# Setup anaconda
 before_install:
-  # http://conda.pydata.org/docs/travis.html
-  - sudo apt-get update
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-      sudo apt-get install python-dev build-essential;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-      sudo apt-get install python3-dev build-essential;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda config --add channels conda-forge
-  - conda update -q conda
-  - conda info -a
+  - pip install --upgrade pip
 
 install:
-  - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION --file requirements/conda.txt
-  - source activate test-env
   - pip install -r requirements/requirements.txt
-  - pip install -r requirements/test.txt
-
+  - pip install -r requirements/requirements_dev.txt
   - python setup.py install
 
   - export HYPOTHESIS_PROFILE="ci"
