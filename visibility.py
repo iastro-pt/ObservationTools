@@ -209,9 +209,13 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None, print2fi
     plabel = "[{0:2d}]  {1!s}".format(n+1, target['name'])
 
     # number of target at the top of the curve
-    altmax = np.argmax(altaz[0])
-    ax.text(jdsub[altmax], altaz[0][altmax], str(n+1), color="b", fontsize=14, \
+    ind_label = np.argmax(altaz[0])
+    # or at the bottom if the top is too close to the corners
+    # if jdsub[ind_label] < 5 or jdsub[ind_label] > jdsub.max()-5:
+    #   ind_label = np.argmin(altaz[0])
+    ax.text( jdsub[ind_label], altaz[0][ind_label], str(n+1), color="b", fontsize=14, \
              fontproperties=font1, va="bottom", ha="center")
+
 
     if n+1 == 29:
       # too many?
@@ -266,17 +270,17 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None, print2fi
   ax2.set_xticks(np.cumsum(ndays))
   ax2.set_xlabel("Day")
 
-  # Horizon angle for airmass
-  airmass_ang = np.arange(5.,90.,5.)
-  geo_airmass = pyasl.airmass.airmassPP(90.-airmass_ang)
+  # plane-parallel airmass
+  airmass_ang = np.arange(10, 81, 5)
+  geo_airmass = pyasl.airmass.airmassPP(airmass_ang)[::-1]
   ax2.set_yticks(airmass_ang)
   airmassformat = []
   for t in range(geo_airmass.size):
     airmassformat.append("{0:2.2f}".format(geo_airmass[t]))
-  ax2.set_yticklabels(airmassformat, rotation=90)
+  ax2.set_yticklabels(airmassformat)#, rotation=90)
   ax2.set_ylabel("Relative airmass", labelpad=32)
-  ax2.tick_params(axis="y", pad=10, labelsize=10)
-  plt.text(1.015,-0.04, "Plane-parallel", transform=ax.transAxes, ha='left', \
+  ax2.tick_params(axis="y", pad=6, labelsize=8)
+  plt.text(1.02,-0.04, "Plane-parallel", transform=ax.transAxes, ha='left', \
            va='top', fontsize=10, rotation=90)
 
   ax22 = ax.twin()
@@ -285,16 +289,17 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None, print2fi
   ax22.patch.set_visible(False)
   ax22.yaxis.set_ticks_position('right')
   ax22.yaxis.set_label_position('right')
-  ax22.spines['right'].set_position(('outward', 25))
+  ax22.spines['right'].set_position(('outward', 30))
   ax22.spines['right'].set_color('k')
   ax22.spines['right'].set_visible(True)
   airmass2 = list(map(lambda ang: pyasl.airmass.airmassSpherical(90. - ang, obs['altitude']), airmass_ang))
   ax22.set_yticks(airmass_ang)
   airmassformat = []
-  for t in range(len(airmass2)): airmassformat.append("{0:2.2f}".format(airmass2[t]))
+  for t in range(len(airmass2)): 
+    airmassformat.append(" {0:2.2f}".format(airmass2[t]))
   ax22.set_yticklabels(airmassformat, rotation=90)
-  ax22.tick_params(axis="y", pad=10, labelsize=10)
-  plt.text(1.045,-0.04, "Spherical+Alt", transform=ax.transAxes, ha='left', va='top', \
+  ax22.tick_params(axis="y", pad=8, labelsize=8)
+  plt.text(1.05,-0.04, "Spherical+Alt", transform=ax.transAxes, ha='left', va='top', \
            fontsize=10, rotation=90)
 
 
@@ -385,7 +390,6 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
 
   try:
     import matplotlib
-    import matplotlib.pylab as plt
     from mpl_toolkits.axes_grid1 import host_subplot
     from matplotlib.ticker import MultipleLocator
     from matplotlib.font_manager import FontProperties
