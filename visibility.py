@@ -9,6 +9,7 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates import name_resolve
 import ephem
 import argparse
+import calendar
 
 try:
   from tqdm import tqdm
@@ -243,7 +244,7 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
 
   axrange = ax.get_xlim()
   
-  import calendar
+  
   if period is None:
     months = range(1, 13)
     ndays = [0] + [calendar.monthrange(date, m)[1] for m in months]
@@ -393,16 +394,10 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True,
         If True (default), the Moon distance will be shown.
   """
 
-  try:
-    import matplotlib
-    from mpl_toolkits.axes_grid1 import host_subplot
-    from matplotlib.ticker import MultipleLocator
-    from matplotlib.font_manager import FontProperties
-    from matplotlib import rcParams
-  except ImportError:
-    print('matplotlib is not installed?')
-    sys.exit(1)
-
+  from mpl_toolkits.axes_grid1 import host_subplot
+  from matplotlib.ticker import MultipleLocator
+  from matplotlib.font_manager import FontProperties
+  from matplotlib import rcParams
   rcParams['xtick.major.pad'] = 12
 
 
@@ -659,9 +654,6 @@ if __name__ == '__main__':
     except name_resolve.NameResolveError as e:
       print('Could not find target: {0!s}'.format(target_name))
   
-  # print('finished!')
-  # sys.exit(0)
-
   ## Just print coordinates in STARALT format and exit
   if args.c:
     print('Coordinates for {0!s}\n'.format(args.targets[0]))
