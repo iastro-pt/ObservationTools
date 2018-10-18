@@ -19,6 +19,7 @@ except ImportError:
 
 import io
 import matplotlib.pyplot as plt
+import matplotlib
 replace_figure = True
 try:
     from PySide.QtGui import QApplication, QImage
@@ -718,16 +719,15 @@ if __name__ == '__main__':
       ## name hh mm ss ±dd mm ss
       out = '{0!s}'.format(target['name'])
       ra = target['coord'].ra.hms
-      out += ' {0:02d} {1:02d} {2:5.3f}'.format(ra.h, ra.m, ra.s)
+      out += ' {0:02d} {1:02d} {2:5.3f}'.format(int(ra.h), int(ra.m), ra.s)
       dec = target['coord'].dec.dms
-      out += ' {0:02d} {1:02d} {2:5.3f}'.format(dec.d, dec.m, dec.s)
+      out += ' {0:02d} {1:02d} {2:5.3f}'.format(int(dec.d), int(dec.m), dec.s)
       print(out)
 
     sys.exit(0)
 
   ## Actually calculate the visibility curves
   print('Calculating visibility for {0!s}'.format(args.targets[0]))
-  # print (args)
 
   P = args.period
   if args.period is not None:
