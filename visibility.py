@@ -81,6 +81,8 @@ def _parser():
     parser.add_argument('-m', '--mode', choices=['staralt', 'starobs'], default='staralt',
                         help='staralt: plot altitude against time for a particular night; '
                              'starobs: plot how altitude changes over a year')
+    parser.add_argument('--sh', default=None, type=float, nargs=1, dest='A',
+                        help='Include plot of sunless hours above airmass A')
     parser.add_argument('--hover', default=False, action='store_true',
                         help='Color lines when mouse over')
     parser.add_argument('-o', '--save', default=None, type=str, nargs=1,
@@ -129,7 +131,7 @@ def get_ESO_period(period):
 
 
 def StarObsPlot(year=None, targets=None, observatory=None, period=None, 
-                hover=False, remove_watermark=False):
+                hover=False, sunless_hours=None, remove_watermark=False):
   """
     Plot the visibility of target.
 
@@ -148,6 +150,8 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
         ESO period for which to calculate the visibility. Overrides `year`.
     hover: boolean, optional
         If True, color visibility lines when mouse over.
+    sunless_hours: float, optional
+        If not None, plot sunless hours above this airmass
   """
 
   from mpl_toolkits.axes_grid1 import host_subplot
@@ -178,7 +182,30 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
             fontsize=10, color='gray',
             ha='right', va='top', alpha=0.5)
 
-  ax = host_subplot(111)
+  # plotting sunless hours?
+  shmode = False
+  if sunless_hours is not None:
+    shmode = True
+    # limit in airmass (assumed plane-parallel atm)
+    shairmass = sunless_hours
+    # correspoing limit in altitude
+    from scipy.optimize import bisect
+    shalt = 90 - bisect(lambda alt: pyasl.airmassPP(alt) - shairmass, 0, 89)
+
+  if shmode:
+    fig.subplots_adjust(hspace=0.35)
+    ax = host_subplot(211)
+    axsh = host_subplot(212)
+    plt.text(0.5, 0.47,
+          "- sunless hours above airmass {:.1f} - \n".format(shairmass),
+          transform=fig.transFigure, ha='center', va='bottom', fontsize=12)
+    plt.text(0.5, 0.465,
+          "the thick line above the curves represents the total sunless hours "\
+          "for each day of the year",
+          transform=fig.transFigure, ha='center', va='bottom', fontsize=10)
+
+  else:
+    ax = host_subplot(111)
 
   for n, target in enumerate(targets):
 
@@ -206,6 +233,8 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
       s.lat = ':'.join([str(i) for i in decdeg2dms(obs['latitude'])])
       s.lon = ':'.join([str(i) for i in decdeg2dms(obs['longitude'])])
       jds.append(ephem.julian_date(s.next_antitransit(sun)))
+
+
     jds = np.array(jds)
 
     # Get JD floating point
@@ -215,7 +244,6 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
     altaz = pyasl.eq2hor(jds, np.ones_like(jds)*target_ra, np.ones_like(jds)*target_dec, \
                         lon=obs['longitude'], lat=obs['latitude'], alt=obs['altitude'])
     ax.plot( jdsub, altaz[0], '-', color='k')
-
 
     # label for each target
     plabel = "[{0:2d}]  {1!s}".format(n+1, target['name'])
@@ -237,6 +265,24 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
       ax.text(1.1, 1.0-float(n+1)*0.04, plabel, ha="left", va="top", transform=ax.transAxes, \
               fontsize=12, fontproperties=font0, color="b")
 
+  if shmode:
+    sunless_hours = []
+    for day in each_day:
+      date_formatted = '/'.join([str(i) for i in pyasl.daycnv(day)[:-1]])
+      s = ephem.Observer();
+      s.date = date_formatted;
+      s.lat = ':'.join([str(i) for i in decdeg2dms(obs['latitude'])])
+      s.lon = ':'.join([str(i) for i in decdeg2dms(obs['longitude'])])
+      # hours from sunrise to sunset
+      td = pyasl.daycnv(ephem.julian_date(s.next_setting(sun)), mode='dt') \
+            - pyasl.daycnv(ephem.julian_date(s.next_rising(sun)), mode='dt')
+      sunless_hours.append(24 - td.total_seconds() / 3600)
+
+    days = each_day - np.floor(each_day[0])
+    axsh.plot(days, sunless_hours, '-', color='k', lw=2)
+    axsh.set(ylim=(0, 15), yticks=range(1,15), ylabel='Useful hours',
+             yticklabels=[r'${}^{{\rm h}}$'.format(n) for n in range(1,15)])
+
 
   ax.text(1.1, 1.03, "List of targets", ha="left", va="top", transform=ax.transAxes, \
           fontsize=12, fontproperties=font0, color="b")
@@ -251,6 +297,10 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
     ax.set_xlim([0, 366])
     ax.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
     ax.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
+    if shmode:
+      axsh.set_xlim([0, 366])
+      axsh.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
+      axsh.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
   else:
     if int(period) % 2 == 0:
       # even ESO period, Oct -> Mar
@@ -259,6 +309,10 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
       ax.set_xlim([0, 181])
       ax.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
       ax.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
+      if shmode:
+        axsh.set_xlim([0, 181])
+        axsh.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
+        axsh.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
     else:
       # odd ESO period, Apr -> Sep
       months = range(4, 10)
@@ -266,7 +320,10 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
       ax.set_xlim([0, 182])
       ax.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
       ax.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
-
+      if shmode:
+        axsh.set_xlim([0, 182])
+        axsh.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
+        axsh.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
 
   if axrange[1]-axrange[0] <= 1.0:
     jdhours = np.arange(0,3,1.0/24.)
@@ -341,11 +398,11 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
   if period is not None:
     plt.text(0.5, 0.95,
              "Visibility over P{0!s}\n - altitudes at mid-dark time -".format(period),
-             transform=fig.transFigure, ha='center', va='bottom', fontsize=16)
+             transform=fig.transFigure, ha='center', va='bottom', fontsize=12)
   else:
     plt.text(0.5, 0.95,
              "Visibility over {0!s}\n - altitudes at mid-dark time -".format(date),
-             transform=fig.transFigure, ha='center', va='bottom', fontsize=16)
+             transform=fig.transFigure, ha='center', va='bottom', fontsize=12)
 
 
   obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4f} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
@@ -725,8 +782,12 @@ if __name__ == '__main__':
                          remove_watermark=args.remove_watermark)
 
   elif args.mode == 'starobs':
+    if args.A is not None:
+      am = args.A[0]
+    else:
+      am = None
     fig = StarObsPlot(year=date, targets=targets, observatory=site, 
-                      period=P, hover=args.hover, 
+                      period=P, hover=args.hover, sunless_hours=am,
                       remove_watermark=args.remove_watermark)
 
   if args.save is not None:
