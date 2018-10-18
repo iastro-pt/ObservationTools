@@ -688,23 +688,19 @@ if __name__ == '__main__':
     if args.mode == 'staralt':
       today = dt.datetime.now() # now() gives the current time which we don't want
       date = dt.datetime(today.year, today.month, today.day, tzinfo=tz.tzutc())
-      print(date.date())
     elif args.mode == 'starobs':
       date = dt.datetime.now().year
-      print(date)
   else:
     if args.mode == 'staralt':
       if "-" not in args.date:
         raise ValueError("Date needs to be provided as YYYY-MM-DD for staralt mode.")
       ymd = [int(i) for i in args.date.split('-')]
       date = dt.datetime(*ymd)
-      print(date.date())
     elif args.mode == 'starobs':
       if "-" in args.date:
         date = int(args.date.split('-')[0])
       else:
         date = int(args.date)
-      print(date)
 
   ## Find observatory
   if args.loc is None:
