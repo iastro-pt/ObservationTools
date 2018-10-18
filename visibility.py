@@ -66,7 +66,7 @@ def _parser():
     parser.add_argument('targets', help='E.g. HD20010 or HD20010,HD41248', nargs='+')
     parser.add_argument('-d', '--date', default='today',
                         help='Date in format YYYY-MM-DD (or YYYY if starobs). '
-                             ' Default is today (this year if starobs.')
+                             ' Default is today (this year if starobs).')
     parser.add_argument('-P', '--period', default=None, type=str, nargs=1,
                         help='Specify ESO period (October-March / April-September)')
     parser.add_argument('-s', '--site', default='esolasilla',
