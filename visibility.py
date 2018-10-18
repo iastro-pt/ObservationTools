@@ -4,6 +4,8 @@ import sys
 import numpy as np
 import datetime as dt
 from dateutil import tz
+import pickle
+from random import choice
 from PyAstronomy import pyasl
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import name_resolve
@@ -102,6 +104,27 @@ def decdeg2dms(dd):
     degrees,minutes = divmod(minutes,60)
     degrees = degrees if is_positive else -degrees
     return (degrees,minutes,seconds)
+
+class CacheSkyCoord(SkyCoord):
+  @classmethod
+  def from_name(cls, name, frame='icrs'):
+    try:
+      cached = pickle.load(open('CachedSkyCoords.pickle', 'rb'))
+    except FileNotFoundError:
+      cached = {}
+    
+    if name in cached:
+      return cached[name]
+    else:
+      original = super(CacheSkyCoord, cls).from_name(name, frame)
+      # keep the cached dict manageable
+      n = len(cached)
+      if n>100:
+        # remove a random cached target
+        cached.pop(choice(list(cached.keys())))
+      cached.update({name: original})
+      pickle.dump(cached, open('CachedSkyCoords.pickle', 'wb'))
+      return original
 
 
 ESO_periods = {
@@ -708,7 +731,8 @@ if __name__ == '__main__':
 
   for target_name in tqdm(target_names):
     try:
-      targets.append({'name': target_name, 'coord': SkyCoord.from_name(target_name)})
+      targets.append({'name': target_name, 
+                      'coord': CacheSkyCoord.from_name(target_name)})
     except name_resolve.NameResolveError as e:
       print('Could not find target: {0!s}'.format(target_name))
   
