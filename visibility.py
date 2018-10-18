@@ -65,7 +65,10 @@ def _parser():
                                                  ' against time for a specific night')
     parser.add_argument('targets', help='E.g. HD20010 or HD20010,HD41248', nargs='+')
     parser.add_argument('-d', '--date', default='today',
-                        help='Date in format YYYY-MM-DD (or YYYY if starobs). Default is today.')
+                        help='Date in format YYYY-MM-DD (or YYYY if starobs). '
+                             ' Default is today (this year if starobs.')
+    parser.add_argument('-P', '--period', default=None, type=str, nargs=1,
+                        help='Specify ESO period (October-March / April-September)')
     parser.add_argument('-s', '--site', default='esolasilla',
                         help='Observatory. Default is ESO La Silla. '
                              'Common codes are esoparanal, lapalma, keck, lco, Palomar, etc')
@@ -92,7 +95,34 @@ def decdeg2dms(dd):
     return (degrees,minutes,seconds)
 
 
-def StarObsPlot(year=None, targets=None, observatory=None, print2file=False, hover=False):
+ESO_periods = {
+  104 : [ (2019, 10, 1),  (2020, 3, 31)],
+  103 : [ (2019, 4,  1),  (2019, 9, 30)],
+  102 : [ (2018, 10, 1),  (2019, 3, 31)],
+  101 : [ (2018, 4,  1),  (2018, 9, 30)],
+  100 : [ (2017, 10, 1),  (2018, 3, 31)],
+  99  : [ (2017, 4,  1),  (2017, 9, 30)],
+  98  : [ (2016, 10, 1),  (2017, 3, 31)],
+  97  : [ (2016, 4,  1),  (2016, 9, 30)],
+  96  : [ (2015, 10, 1),  (2016, 3, 31)],
+  95  : [ (2015, 4,  1),  (2015, 9, 30)],
+  94  : [ (2014, 10, 1),  (2015, 3, 31)],
+  93  : [ (2014, 4,  1),  (2014, 9, 30)],
+  92  : [ (2013, 10, 1),  (2014, 3, 31)],
+}
+
+def get_ESO_period(period):
+  """ Return the JD of start and end of ESO period """
+  assert isinstance(period, str) or isinstance(period, int)
+  P = int(period)  
+
+  getjd = lambda y,m,d: pyasl.jdcnv(dt.datetime(y, m, d))
+  jd_start, jd_end = [getjd(*d) for d in ESO_periods[P]] 
+
+  return jd_start, jd_end
+
+
+def StarObsPlot(year=None, targets=None, observatory=None, period=None, print2file=False, hover=False):
   """
     Plot the visibility of target.
 
@@ -107,7 +137,9 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False, hov
     observatory: string
         Name of the observatory that pyasl.observatory can resolve.
         Basically, any of pyasl.listObservatories().keys()
-    print2file : boolean, optional
+    period: string, optional
+        ESO period for which to calculate the visibility. Overrides `year`.
+    print2file: boolean, optional
         If True, the plot will be dumped to a png-file.
   """
 
@@ -141,9 +173,14 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False, hov
     target_ra = target_coord.ra.deg
     target_dec = target_coord.dec.deg
 
+    
+    if period is not None:
+      jd_start, jd_end = get_ESO_period(period)
+    else:
+      jd_start = pyasl.jdcnv(dt.datetime(year, 1, 1))
+      jd_end = pyasl.jdcnv(dt.datetime(year, 12, 31))
+    
     jdbinsize = 1 # every day
-    jd_start = pyasl.jdcnv(dt.datetime(year, 1, 1))
-    jd_end = pyasl.jdcnv(dt.datetime(year, 12, 31))
     each_day = np.arange(jd_start, jd_end, jdbinsize)
     jds = []
 
@@ -189,9 +226,30 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False, hov
 
 
   axrange = ax.get_xlim()
-  months = range(1, 13)
+  
   import calendar
-  ndays = [0] + [calendar.monthrange(date, m)[1] for m in months]
+  if period is None:
+    months = range(1, 13)
+    ndays = [0] + [calendar.monthrange(date, m)[1] for m in months]
+    ax.set_xlim([0, 366])
+    ax.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
+    ax.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
+  else:
+    if int(period) % 2 == 0:
+      # even ESO period, Oct -> Mar
+      months = [10, 11, 12, 1, 2, 3]
+      ndays = [0] + [calendar.monthrange(date, m)[1] for m in months]
+      ax.set_xlim([0, 181])
+      ax.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
+      ax.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
+    else:
+      # odd ESO period, Apr -> Sep
+      months = range(4, 10)
+      ndays = [0] + [calendar.monthrange(date, m)[1] for m in months]
+      ax.set_xlim([0, 182])
+      ax.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
+      ax.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
+
 
   if axrange[1]-axrange[0] <= 1.0:
     jdhours = np.arange(0,3,1.0/24.)
@@ -200,9 +258,6 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False, hov
     jdhours = np.arange(0,3,1.0/12.)
     utchours = (np.arange(0,72, 2, dtype=int)+12)%24
 
-  ax.set_xlim([0, 366])
-  ax.set_xticks(np.cumsum(ndays)[:-1] + (np.array(ndays)/2.)[1:])
-  ax.set_xticklabels(map(calendar.month_abbr.__getitem__, months), fontsize=10)
 
   # Make ax2 responsible for "top" axis and "right" axis
   ax2 = ax.twin()
@@ -265,8 +320,14 @@ def StarObsPlot(year=None, targets=None, observatory=None, print2file=False, hov
   ax.yaxis.grid(color='gray', which="minor", linestyle='dotted')
   ax2.xaxis.grid(color='gray', linestyle='dotted')
 
-  plt.text(0.5,0.95,"Visibility over {0!s}\n - altitudes at mid-dark time -".format(date), \
-           transform=fig.transFigure, ha='center', va='bottom', fontsize=16)
+  if period is not None:
+    plt.text(0.5, 0.95,
+             "Visibility over P{0!s}\n - altitudes at mid-dark time -".format(period),
+             transform=fig.transFigure, ha='center', va='bottom', fontsize=16)
+  else:
+    plt.text(0.5, 0.95,
+             "Visibility over {0!s}\n - altitudes at mid-dark time -".format(date),
+             transform=fig.transFigure, ha='center', va='bottom', fontsize=16)
 
 
   obsco = "Obs coord.: {0:8.4f}$^\circ$, {1:8.4f}$^\circ$, {2:4f} m".format(obs['longitude'], obs['latitude'], obs['altitude'])
@@ -606,6 +667,17 @@ if __name__ == '__main__':
 
   ## Actually calculate the visibility curves
   print('Calculating visibility for {0!s}'.format(args.targets[0]))
+  # print (args)
+
+  P = args.period
+  if args.period is not None:
+    if args.mode != 'starobs':
+      print('Specifying ESO period is only possible in "starobs" mode')
+      sys.exit(1)
+
+    P = args.period[0]
+    P = P.replace('P','') # if user gave --period P100, for example
+
 
   if args.date == 'today':
     if args.mode == 'staralt':
@@ -648,8 +720,10 @@ if __name__ == '__main__':
     loc = list(map(float, args.loc.split(',')))
     site = {'altitude':loc[0], 'latitude': loc[1], 'longitude':loc[2], 'tz':loc[3], 'name':'unknown'}
   
+  
   if args.mode == 'staralt':
     ## Plot visibility
     fig = VisibilityPlot(date=date, targets=targets, observatory=site)
   elif args.mode == 'starobs':
-    fig = StarObsPlot(year=date, targets=targets, observatory=site, hover=args.hover)
+    fig = StarObsPlot(year=date, targets=targets, observatory=site, 
+                      period=P, hover=args.hover)
