@@ -10,6 +10,56 @@ from astropy.coordinates import name_resolve
 import ephem
 import argparse
 
+try:
+  from tqdm import tqdm
+except ImportError:
+  tqdm = lambda x: x
+
+
+import io
+import matplotlib.pyplot as plt
+replace_figure = True
+try:
+    from PySide.QtGui import QApplication, QImage
+except ImportError:
+    try:
+        from PyQt4.QtGui import QApplication, QImage
+    except ImportError:
+        try:
+            from PyQt5.QtWidgets import QApplication
+            from PyQt5.QtGui import QImage
+        except ImportError:
+            replace_figure = False
+
+
+def add_clipboard_to_figures():
+    # replace the original plt.figure() function with one that supports 
+    # clipboard-copying
+    oldfig = plt.figure
+
+    def newfig(*args, **kwargs):
+        fig = oldfig(*args, **kwargs)
+        def clipboard_handler(event):
+            if event.key == 'ctrl+c':
+                # store the image in a buffer using savefig(), this has the
+                # advantage of applying all the default savefig parameters
+                # such as background color; those would be ignored if you simply
+                # grab the canvas using Qt
+                buf = io.BytesIO()
+                fig.savefig(buf)
+                QApplication.clipboard().setImage(QImage.fromData(buf.getvalue()))
+                buf.close()
+                print('Ctrl+C pressed: image is now in the clipboard')
+
+        fig.canvas.mpl_connect('key_press_event', clipboard_handler)
+        return fig
+
+    plt.figure = newfig
+
+if replace_figure: add_clipboard_to_figures()
+
+
+
 def _parser():
     parser = argparse.ArgumentParser(description='Plot altitudes of objects'
                                                  ' against time for a specific night')
@@ -531,13 +581,14 @@ if __name__ == '__main__':
   else:
     print('Sending queries to CDS...', end=' ', flush=True)
 
-  for target_name in target_names:
+  for target_name in tqdm(target_names):
     try:
       targets.append({'name': target_name, 'coord': SkyCoord.from_name(target_name)})
     except name_resolve.NameResolveError as e:
       print('Could not find target: {0!s}'.format(target_name))
   
-  print('finished!')
+  # print('finished!')
+  # sys.exit(0)
 
   ## Just print coordinates in STARALT format and exit
   if args.c:
