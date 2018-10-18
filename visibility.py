@@ -82,8 +82,11 @@ def _parser():
                              'starobs: plot how altitude changes over a year')
     parser.add_argument('--hover', default=False, action='store_true',
                         help='Color lines when mouse over')
+    parser.add_argument('-o', '--save', default=None, type=str, nargs=1,
+                        help='Save figure in output file (provide file extension)')
     parser.add_argument('--remove-watermark', default=False, action='store_true',
                         help='Remove "Created with..." watermark text')
+    
     return parser.parse_args()
 
 
@@ -125,7 +128,7 @@ def get_ESO_period(period):
 
 
 def StarObsPlot(year=None, targets=None, observatory=None, period=None, 
-                print2file=False, hover=False, remove_watermark=False):
+                hover=False, remove_watermark=False):
   """
     Plot the visibility of target.
 
@@ -142,8 +145,6 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
         Basically, any of pyasl.listObservatories().keys()
     period: string, optional
         ESO period for which to calculate the visibility. Overrides `year`.
-    print2file: boolean, optional
-        If True, the plot will be dumped to a png-file.
     hover: boolean, optional
         If True, color visibility lines when mouse over.
   """
@@ -366,11 +367,6 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None,
             fig.canvas.draw_idle()
     fig.canvas.mpl_connect('motion_notify_event', on_plot_hover)
 
-  if print2file:
-    pass
-    # plt.savefig(outfile, format="png", dpi=300)
-  else:
-    plt.show()
   return fig
 
 
@@ -395,8 +391,6 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True,
         If True (default), show a legend.
     showMoonDist : boolean, optional
         If True (default), the Moon distance will be shown.
-    print2file : boolean, optional
-        If True, the plot will be dumped to a png-file.
   """
 
   try:
@@ -641,12 +635,6 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True,
   plt.text(0.01,0.97, obsco, transform=fig.transFigure, ha='left', va='center', fontsize=10)
   plt.text(0.01,0.95, obs['name'], transform=fig.transFigure, ha='left', va='center', fontsize=10)
 
-  if print2file:
-    pass
-    # plt.savefig(outfile, format="png", dpi=300)
-  else:
-    plt.show()
-
   return fig
 
 
@@ -748,3 +736,9 @@ if __name__ == '__main__':
     fig = StarObsPlot(year=date, targets=targets, observatory=site, 
                       period=P, hover=args.hover, 
                       remove_watermark=args.remove_watermark)
+
+  if args.save is not None:
+    print('Saving the figure to {}'.format(args.save[0]))
+    fig.savefig(args.save[0])
+  else:
+    plt.show()
