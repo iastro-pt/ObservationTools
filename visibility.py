@@ -82,6 +82,8 @@ def _parser():
                              'starobs: plot how altitude changes over a year')
     parser.add_argument('--hover', default=False, action='store_true',
                         help='Color lines when mouse over')
+    parser.add_argument('--remove-watermark', default=False, action='store_true',
+                        help='Remove "Created with..." watermark text')
     return parser.parse_args()
 
 
@@ -122,7 +124,8 @@ def get_ESO_period(period):
   return jd_start, jd_end
 
 
-def StarObsPlot(year=None, targets=None, observatory=None, period=None, print2file=False, hover=False):
+def StarObsPlot(year=None, targets=None, observatory=None, period=None, 
+                print2file=False, hover=False, remove_watermark=False):
   """
     Plot the visibility of target.
 
@@ -166,6 +169,13 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None, print2fi
 
   fig = plt.figure(figsize=(15,10))
   fig.subplots_adjust(left=0.07, right=0.8, bottom=0.15, top=0.88)
+  
+  # watermak
+  if not remove_watermark:
+    fig.text(0.99, 0.99, 'Created with\ngithub.com/iastro-pt/ObservationTools',
+            fontsize=10, color='gray',
+            ha='right', va='top', alpha=0.5)
+
   ax = host_subplot(111)
 
   for n, target in enumerate(targets):
@@ -365,7 +375,8 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None, print2fi
 
 
 
-def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, showMoonDist=True, print2file=False):
+def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, 
+                   showMoonDist=True, print2file=False, remove_watermark=False):
   """
     Plot the visibility of target.
 
@@ -425,6 +436,13 @@ def VisibilityPlot(date=None, targets=None, observatory=None, plotLegend=True, s
 
   fig = plt.figure(figsize=(15,10))
   fig.subplots_adjust(left=0.07, right=0.8, bottom=0.15, top=0.88)
+
+  # watermak
+  if not remove_watermark:
+    fig.text(0.99, 0.99, 'Created with\ngithub.com/iastro-pt/ObservationTools',
+            fontsize=10, color='gray',
+            ha='right', va='top', alpha=0.5)
+
   ax = host_subplot(111)
 
   font0 = FontProperties()
@@ -723,8 +741,10 @@ if __name__ == '__main__':
   
   
   if args.mode == 'staralt':
-    ## Plot visibility
-    fig = VisibilityPlot(date=date, targets=targets, observatory=site)
+    fig = VisibilityPlot(date=date, targets=targets, observatory=site,
+                         remove_watermark=args.remove_watermark)
+
   elif args.mode == 'starobs':
     fig = StarObsPlot(year=date, targets=targets, observatory=site, 
-                      period=P, hover=args.hover)
+                      period=P, hover=args.hover, 
+                      remove_watermark=args.remove_watermark)
