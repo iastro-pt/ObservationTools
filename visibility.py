@@ -81,7 +81,7 @@ def _parser():
                         help='staralt: plot altitude against time for a particular night; '
                              'starobs: plot how altitude changes over a year')
     parser.add_argument('--hover', default=False, action='store_true',
-                        help='Color lines when mouse hover')
+                        help='Color lines when mouse over')
     return parser.parse_args()
 
 
@@ -141,9 +141,10 @@ def StarObsPlot(year=None, targets=None, observatory=None, period=None, print2fi
         ESO period for which to calculate the visibility. Overrides `year`.
     print2file: boolean, optional
         If True, the plot will be dumped to a png-file.
+    hover: boolean, optional
+        If True, color visibility lines when mouse over.
   """
 
-  import matplotlib.pylab as plt
   from mpl_toolkits.axes_grid1 import host_subplot
   from matplotlib.ticker import MultipleLocator
   from matplotlib.font_manager import FontProperties
