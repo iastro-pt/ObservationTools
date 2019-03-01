@@ -3,5 +3,5 @@ astropy==2.0.12  # pyup: < 3.0.0 until 2019-12-31
 ephem==3.7.6.0
 matplotlib==3.0.3
 numpy==1.16.2
-scipy==1.1.0
+scipy==1.2.1
 PyAstronomy==0.13.0
